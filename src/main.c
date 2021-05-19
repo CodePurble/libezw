@@ -8,14 +8,16 @@
 
 int main()
 {
-    FILE *fptr = fopen("/home/ramprakash/rpdata/nie/study-material/sem6/miniproject/libezw/utils/raw_lichtenstein_img_processing_test_bw.bin", "rb");
+    // FILE *fptr = fopen("/mnt/d/libezw/utils/raw_lichtenstein_img_processing_test_bw.bin", "rb");
+    FILE *fptr = fopen("/mnt/d/libezw/build/ll.bin", "wb");
+
     unsigned char *pix_arr = calloc(ROWS*COLS, 1); // array of 8 bit vals
     if(!fptr) {
         fprintf(stderr, "Unable to open file\n");
     }
     else {
-        read_binary_file(fptr, pix_arr, ROWS, COLS);
-        fclose(fptr);
+        // read_binary_file(fptr, pix_arr, ROWS, COLS);
+        // fclose(fptr);
         wave_object obj;
         wt2_object wt;
         double *inp, *wavecoeffs, *oup, *cLL;
@@ -40,8 +42,10 @@ int main()
         wavecoeffs = dwt2(wt, inp);
         cLL = getWT2Coeffs(wt, wavecoeffs, 1, "A", &ir, &ic);
 
-        dispWT2Coeffs(cLL, ir, ic);
+        // dispWT2Coeffs(cLL, ir, ic);
+        printf("Hello %f\n",cLL[100]);
 
+        write_binary_file(fptr, cLL, ROWS/4, COLS/4);
         wt2_summary(wt);
 
         // clean up
