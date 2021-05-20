@@ -49,14 +49,17 @@ int main(int argc, char **argv)
         else {
             wave_object obj;
             wt2_object wt;
-            double *inp, *wavecoeffs, *oup, *cLL;
+            double *inp, *wavecoeffs, *oup, *cLL, *inv_out;
             int N = ROWS*COLS;
             int ir, ic;
+            unsigned char *inv_pix = calloc(N, 1);
 
             char *name = "db2";
             obj = wave_init(name);// Initialize the wavelet
             inp = (double*) calloc(N, sizeof(double));
             oup = (double*) calloc(N, sizeof(double));
+            /* cLL_inverse = (double *) calloc(N/16, sizeof(double)); */
+            inv_out = (double *) calloc(N, sizeof(double));
 
             int J = 1; // number of decompositions
 
@@ -72,12 +75,21 @@ int main(int argc, char **argv)
 
             cLL = getWT2Coeffs(wt, wavecoeffs, 1, "A", &ir, &ic);
 
+            // TODO
+            // * Find a way to idwt2 only subband coeffs
+            // * Allows IDWT only on the whole set of coeffs, segfaults if
+            //   given any other size of coeffs because of dependency on
+            //   wt2_object
+            idwt2(wt, wavecoeffs, inv_out);
+            /* idwt2(wt, cLL, cLL_inverse); */
+
+            // Convert output to unsigned chars
+            double_to_uchar(inv_out, inv_pix, ROWS, COLS);
+
+            write_binary_file(coeff_bin, inv_pix, ROWS, COLS);
+
             /* dispWT2Coeffs(cLL, ir, ic); */
 
-            // This is very very bad, just here to test if file is written
-            // TODO: Perform IDWT, map those vals to (0..255), and write
-            // those to the binary file
-            write_binary_file(img_bin, (unsigned char *) cLL, ROWS/4, COLS/4);
             /* wt2_summary(wt); */
 
             // clean up
@@ -87,6 +99,7 @@ int main(int argc, char **argv)
             free(wavecoeffs);
             free(oup);
             free(pix_arr);
+            free(inv_out);
             fclose(coeff_bin);
         }
     }
