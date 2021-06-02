@@ -3,9 +3,42 @@
 #include <stdbool.h>
 #include "utils.h"
 #include "wavelib.h"
+#include "sbtree.h"
+#include "ezw.h"
 
-#define ROWS 512
-#define COLS 512
+#define ROWS 16
+#define COLS 16
+#define L 8
+
+/* int main() */
+/* { */
+/*     double arr[L]; */
+/*     for(int i = 0; i < L; i++) { */
+/*         arr[i] = (double) i + 1; */
+/*     } */
+/*     SBtree_node *root = sb_tree_init_root(); */
+/*     // Layer 1 */
+/*     root = sb_tree_insert(root, LL, &arr[0]); */
+/*     root = sb_tree_insert(root, HL, &arr[1]); */
+/*     root = sb_tree_insert(root, LH, &arr[2]); */
+/*     root = sb_tree_insert(root, HH, &arr[3]); */
+/*     // Layer 2 */
+/*     root = sb_tree_insert(root, LL, &arr[4]); */
+/*     root = sb_tree_insert(root, HL, &arr[5]); */
+/*     root = sb_tree_insert(root, LH, &arr[6]); */
+/*     root = sb_tree_insert(root, HH, &arr[7]); */
+/*     sb_tree_print_preorder(root); */
+/*     printf("\n"); */
+/*     double *res = sb_tree_get_coeff(root, HL, 10); */
+/*     if(res) { */
+/*         printf("Found %f\n", res[0]); */
+/*     } */
+/*     else { */
+/*         printf("Not found\n"); */
+/*     } */
+/*     sb_tree_free(root); */
+/*     return 0; */
+/* } */
 
 int main(int argc, char **argv)
 {
@@ -52,16 +85,16 @@ int main(int argc, char **argv)
             double *inp, *wavecoeffs, *oup, *cLL, *inv_out;
             int N = ROWS*COLS;
             int ir, ic;
-            unsigned char *inv_pix = calloc(N, 1);
+            /* [> unsigned char *inv_pix = calloc(N, 1); <] */
 
-            char *name = "db2";
+            char *name = "haar";
             obj = wave_init(name);// Initialize the wavelet
             inp = (double*) calloc(N, sizeof(double));
             oup = (double*) calloc(N, sizeof(double));
-            /* cLL_inverse = (double *) calloc(N/16, sizeof(double)); */
+            /* [> cLL_inverse = (double *) calloc(N/16, sizeof(double)); <] */
             inv_out = (double *) calloc(N, sizeof(double));
 
-            int J = 1; // number of decompositions
+            int J = 3; // number of decompositions
 
             wt = wt2_init(obj, "dwt", ROWS, COLS, J);
 
@@ -71,32 +104,37 @@ int main(int argc, char **argv)
                     oup[i*COLS + k] = 0.0;
                 }
             }
+            SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
+            root = sb_treeify(J, inp, ROWS, COLS);
+            sb_tree_print_preorder(root);
+            printf("\n");
             wavecoeffs = dwt2(wt, inp);
 
-            cLL = getWT2Coeffs(wt, wavecoeffs, 1, "A", &ir, &ic);
+            cLL = getWT2Coeffs(wt, wavecoeffs, J, "D", &ir, &ic);
 
             // TODO
             // * Find a way to idwt2 only subband coeffs
             // * Allows IDWT only on the whole set of coeffs, segfaults if
             //   given any other size of coeffs because of dependency on
             //   wt2_object
-            idwt2(wt, wavecoeffs, inv_out);
-            /* idwt2(wt, cLL, cLL_inverse); */
+            /* [> [> idwt2(wt, wavecoeffs, inv_out); <] <] */
+            /* [> [> idwt2(wt, cLL, cLL_inverse); <] <] */
 
             // Convert output to unsigned chars
-            double_to_uchar(inv_out, inv_pix, ROWS, COLS);
+            /* [> double_to_uchar(wavecoeffs, inv_pix, ROWS, COLS); <] */
 
-            write_binary_file(coeff_bin, inv_pix, ROWS, COLS);
+            /* [> write_binary_file(coeff_bin, inv_pix, ROWS, COLS); <] */
 
-            /* dispWT2Coeffs(cLL, ir, ic); */
+            dispWT2Coeffs(cLL, ir, ic);
+            /* [> dispWT2Coeffs(wavecoeffs, ROWS, COLS); <] */
 
-            /* wt2_summary(wt); */
 
             // clean up
+            sb_tree_free(root);
             wave_free(obj);
             wt2_free(wt);
             free(inp);
-            free(wavecoeffs);
+            /* [> free(wavecoeffs); <] */
             free(oup);
             free(pix_arr);
             free(inv_out);

@@ -1,5 +1,6 @@
 # langserver
 .ccls-cache/
+.cache/
 
 build/
 compile_commands.json
