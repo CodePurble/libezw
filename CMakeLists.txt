@@ -9,10 +9,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(wavelib)
 
-file(GLOB SOURCE_FILES "${SOURCE_DIR}/*.c")
-
 include_directories(include)
-add_executable(main ${SOURCE_FILES})
+add_executable(main
+    ./src/ezw.c
+    ./src/main.c
+    ./src/utils.c
+    ./src/sbtree.c
+    )
 
 target_link_libraries(main PUBLIC wavelib m) # "m" to link math.h
 
