@@ -82,16 +82,13 @@ int main(int argc, char **argv)
         else {
             wave_object obj;
             wt2_object wt;
-            double *inp, *wavecoeffs, *oup, *cLL, *inv_out;
+            double *inp, *oup, *inv_out;
             int N = ROWS*COLS;
-            int ir, ic;
-            /* [> unsigned char *inv_pix = calloc(N, 1); <] */
 
             char *name = "haar";
             obj = wave_init(name);// Initialize the wavelet
-            inp = (double*) calloc(N, sizeof(double));
-            oup = (double*) calloc(N, sizeof(double));
-            /* [> cLL_inverse = (double *) calloc(N/16, sizeof(double)); <] */
+            inp = (double *) calloc(N, sizeof(double));
+            oup = (double *) calloc(N, sizeof(double));
             inv_out = (double *) calloc(N, sizeof(double));
 
             int J = 3; // number of decompositions
@@ -108,33 +105,12 @@ int main(int argc, char **argv)
             root = sb_treeify(J, inp, ROWS, COLS);
             sb_tree_print_preorder(root);
             printf("\n");
-            wavecoeffs = dwt2(wt, inp);
-
-            cLL = getWT2Coeffs(wt, wavecoeffs, J, "D", &ir, &ic);
-
-            // TODO
-            // * Find a way to idwt2 only subband coeffs
-            // * Allows IDWT only on the whole set of coeffs, segfaults if
-            //   given any other size of coeffs because of dependency on
-            //   wt2_object
-            /* [> [> idwt2(wt, wavecoeffs, inv_out); <] <] */
-            /* [> [> idwt2(wt, cLL, cLL_inverse); <] <] */
-
-            // Convert output to unsigned chars
-            /* [> double_to_uchar(wavecoeffs, inv_pix, ROWS, COLS); <] */
-
-            /* [> write_binary_file(coeff_bin, inv_pix, ROWS, COLS); <] */
-
-            dispWT2Coeffs(cLL, ir, ic);
-            /* [> dispWT2Coeffs(wavecoeffs, ROWS, COLS); <] */
-
 
             // clean up
             sb_tree_free(root);
             wave_free(obj);
             wt2_free(wt);
             free(inp);
-            /* [> free(wavecoeffs); <] */
             free(oup);
             free(pix_arr);
             free(inv_out);
