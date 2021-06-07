@@ -35,7 +35,6 @@ SBtree_node* sb_tree_insert(SBtree_node *root, enum sb_type t, double *coeffs)
         switch(t) {
             case LL:
                 curr->ll = new;
-                printf("coeffs in tree: %f @ %x\n", curr->ll->coeffs[0], curr->ll->coeffs);
                 break;
             case HL:
                 curr->hl = new;
@@ -120,7 +119,7 @@ void sb_tree_free(SBtree_node *root)
 void sb_tree_print_preorder(SBtree_node *root)
 {
     if(root && root->coeffs) {
-        printf("%f @ %x | ", root->coeffs[0], root->coeffs);
+        printf("%f | ", root->coeffs[0]);
     }
     if(root->ll) {
         sb_tree_print_preorder(root->ll);
