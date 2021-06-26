@@ -56,9 +56,6 @@ SBtree_node* sb_tree_insert(SBtree_node *root, enum sb_type t, double *coeffs)
     }
 }
 
-// Returns NULL if required target not found or if args are not applicable,
-// e.g. sb_type is "ROOT", level is out of bounds
-// Perform NULL check before using
 double* sb_tree_get_coeff(SBtree_node *root, enum sb_type t, int level)
 {
     if(level > 0) {
@@ -114,6 +111,10 @@ void sb_tree_free(SBtree_node *root)
         sb_tree_free(temp_ll);
     }
 }
+
+// I THINK WE NEED TO TREEIFY IN THE OPPOSITE ORDER
+// currently, we store the lower subbands closer to the root but to make the
+// ztree hierarchy we need to scan from higher subbands to lower ones
 
 // DOES NOT print newline at the end, leaves trailing whitespace
 void sb_tree_print_preorder(SBtree_node *root)

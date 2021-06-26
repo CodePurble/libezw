@@ -9,37 +9,79 @@
 #define ROWS 16
 #define COLS 16
 #define L 8
+#define WAVE
 
-/* int main() */
-/* { */
-/*     double arr[L]; */
-/*     for(int i = 0; i < L; i++) { */
-/*         arr[i] = (double) i + 1; */
-/*     } */
-/*     SBtree_node *root = sb_tree_init_root(); */
-/*     // Layer 1 */
-/*     root = sb_tree_insert(root, LL, &arr[0]); */
-/*     root = sb_tree_insert(root, HL, &arr[1]); */
-/*     root = sb_tree_insert(root, LH, &arr[2]); */
-/*     root = sb_tree_insert(root, HH, &arr[3]); */
-/*     // Layer 2 */
-/*     root = sb_tree_insert(root, LL, &arr[4]); */
-/*     root = sb_tree_insert(root, HL, &arr[5]); */
-/*     root = sb_tree_insert(root, LH, &arr[6]); */
-/*     root = sb_tree_insert(root, HH, &arr[7]); */
-/*     sb_tree_print_preorder(root); */
-/*     printf("\n"); */
-/*     double *res = sb_tree_get_coeff(root, HL, 10); */
-/*     if(res) { */
-/*         printf("Found %f\n", res[0]); */
-/*     } */
-/*     else { */
-/*         printf("Not found\n"); */
-/*     } */
-/*     sb_tree_free(root); */
-/*     return 0; */
-/* } */
+#ifndef WAVE
+int main()
+{
+    double LL3 = 57.0;
+    double HL3 = -37.0;
+    double LH3 = -29.0;
+    double HH3 = 30.0;
+    double LL2[4] = {
+        57.0, -37.0,
+        -29.0, 30.0
+    };
+    double HL2[4] = {
+        39.0, -20.0,
+        -17.0, 33.0
+    };
+    double LH2[4] = {
+        14.0, 6.0,
+        10.0, 19.0
+    };
+    double HH2[4]= {
+        15.0, 13.0,
+        -7.0, 9.0
+    };
+    double LL1[16] = {
+        57.0, -37.0, 39.0, -20.0,
+        -29.0, 30.0, 17.0, 33.0,
+        14.0, 6.0, 15.0, 13.0,
+        10.0, 19.0, -7.0, 9.0,
+    };
+    double HL1[16] = {
+        3.0, 7.0, 9.0, 10.0,
+        8.0, 2.0, 1.0, 6.0,
+        9.0, -4.0, 2.0, 3.0,
+        -7.0, 14.0, 12.0, -9.0,
+    };
+    double LH1[16] = {
+        12.0, 15.0, 33.0, 20.0,
+        0.0, 7.0, 2.0, 4.0,
+        4.0, 1.0, 10.0, 3.0,
+        5.0, 6.0, 0.0, 0.0,
+    };
+    double HH1[16] = {
+        -2.0, 3.0, 1.0, 0.0,
+        4.0, -1.0, 1.0, 1.0,
+        2.0, 0.0, 1.0, 0.0,
+        3.0, 1.0, 2.0, 1.0,
+    };
+    SBtree_node *root = sb_tree_init_root();
 
+    // layer 1
+    root = sb_tree_insert(root, LL, &LL3);
+    root = sb_tree_insert(root, HL, &HL3);
+    root = sb_tree_insert(root, LH, &LH3);
+    root = sb_tree_insert(root, HH, &HH3);
+    // layer 2
+    root = sb_tree_insert(root, LL, &LL2[0]);
+    root = sb_tree_insert(root, HL, &HL2[0]);
+    root = sb_tree_insert(root, LH, &LH2[0]);
+    root = sb_tree_insert(root, HH, &HH2[0]);
+    // layer 3
+    root = sb_tree_insert(root, LL, &LL1[0]);
+    root = sb_tree_insert(root, HL, &HL1[0]);
+    root = sb_tree_insert(root, LH, &LH1[0]);
+    root = sb_tree_insert(root, HH, &HH1[0]);
+
+    sb_tree_print_preorder(root);
+    printf("\n");
+    sb_tree_free(root);
+    return 0;
+}
+#else
 int main(int argc, char **argv)
 {
     bool return_error = false;
@@ -125,3 +167,4 @@ int main(int argc, char **argv)
         return 0;
     }
 }
+#endif // WAVE
