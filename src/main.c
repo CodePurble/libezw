@@ -11,8 +11,27 @@
 #define COLS 8
 #define L 8
 
-#define WAVE
-#ifndef WAVE
+#define QTEST
+
+#ifdef QTEST
+#include "queue.h"
+int main()
+{
+    Queue *q = NULL;
+    Node *n = NULL;
+    int arr[10];
+    for(int i = 0; i < 10; i++) {
+        arr[i] = i;
+        q = enqueue(q, &arr[i]);
+    }
+    queue_pretty_print(q);
+    for(int i = 0; i < 10; i++) {
+        n = dequeue(q);
+        DEBUG_INT("head", *(int *) n->data);
+    }
+    queue_pretty_print(q);
+}
+#elif defined(SBTEST)
 int main()
 {
     double LL3 = 57.0;
