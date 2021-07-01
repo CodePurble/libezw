@@ -48,6 +48,7 @@ Node *dequeue(Queue *q)
     return node;
 }
 
+// only for testing, will segfault otherwise
 void queue_pretty_print(Queue *q)
 {
     Node *curr = q->head;

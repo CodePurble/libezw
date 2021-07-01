@@ -35,7 +35,7 @@ double max_double(double *arr, int len)
 
 double** quads_from_arr(double *arr, int rows, int cols)
 {
-    int quadcount = (rows*rows)/4;
+    int quadcount = (rows*cols)/4;
     double **quads = (double **) calloc(sizeof(double *), quadcount);
 
     int count = 0;

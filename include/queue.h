@@ -1,6 +1,5 @@
 #ifndef QUEUE_H
 #define QUEUE_H
-#include "smap.h"
 
 // head is first, head->next is next in queue
 // tail->next will always be NULL
