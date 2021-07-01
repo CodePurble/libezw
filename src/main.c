@@ -1,16 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 #include "utils.h"
 #include "wavelib.h"
 #include "sbtree.h"
-#include "ezw.h"
+#include "smap.h"
 
-#define ROWS 16
-#define COLS 16
+#define ROWS 8
+#define COLS 8
 #define L 8
-#define WAVE
 
+#define WAVE
 #ifndef WAVE
 int main()
 {
@@ -133,7 +134,8 @@ int main(int argc, char **argv)
             oup = (double *) calloc(N, sizeof(double));
             inv_out = (double *) calloc(N, sizeof(double));
 
-            int J = 3; // number of decompositions
+            // number of decompositions = max possible for the given dimensions
+            int J = (int) log2(ROWS);
 
             wt = wt2_init(obj, "dwt", ROWS, COLS, J);
 
@@ -144,9 +146,10 @@ int main(int argc, char **argv)
                 }
             }
             SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
+            Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
-            sb_tree_print_preorder(root);
-            printf("\n");
+            smap_root = smap_treeify(root, J, ROWS, COLS);
+            smap_tree_print_preorder(smap_root);
 
             // clean up
             sb_tree_free(root);

@@ -2,6 +2,6 @@
 #define EZW_H
 #include "sbtree.h"
 
-SBtree_node* sb_treeify(int levels, double *input, int rows, int cols);
+void dominant_pass(SBtree_node *root, int levels, int rows, int cols);
 
 #endif // EZW_H
