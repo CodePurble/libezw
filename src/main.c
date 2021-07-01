@@ -1,19 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <math.h>
 #include "utils.h"
 #include "wavelib.h"
 #include "sbtree.h"
 #include "smap.h"
+#include "queue.h"
 
 #define ROWS 8
 #define COLS 8
 #define L 8
 
-#define QTEST
+/* #define QTEST */
 
-#ifdef QTEST
+#if defined(QTEST)
 #include "queue.h"
 int main()
 {
@@ -104,18 +104,18 @@ int main()
 #else
 int main(int argc, char **argv)
 {
-    bool return_error = false;
+    char return_error = 0;
 
     if(argc == 1) {
         fprintf(stderr, "Error: Requires at least one argument\n");
-        return_error = true;
+        return_error = 1;
     }
     else if(argc == 2) {
         unsigned char *pix_arr = calloc(ROWS*COLS, 1); // array of 8 bit vals
         FILE *img_bin = fopen(argv[1], "rb");
         if(!img_bin) {
             fprintf(stderr, "Unable to open file: %s\n", argv[1]);
-            return_error = true;
+            return_error = 1;
         }
         else {
             read_binary_file(img_bin, pix_arr, ROWS, COLS);
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 
         if(!img_bin) {
             fprintf(stderr, "Unable to open file: %s\n", argv[1]);
-            return_error = true;
+            return_error = 1;
         }
         else {
             read_binary_file(img_bin, pix_arr, ROWS, COLS);
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 
         if(!coeff_bin) {
             fprintf(stderr, "Unable to open file: %s\n", argv[2]);
-            return_error = true;
+            return_error = 1;
         }
         else {
             wave_object obj;
@@ -164,11 +164,13 @@ int main(int argc, char **argv)
                     oup[i*COLS + k] = 0.0;
                 }
             }
+
             SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
             Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
-            smap_root = smap_treeify(root, J, ROWS, COLS);
+            smap_root = smap_treeify(root, J);
             smap_tree_print_preorder(smap_root);
+            printf("\n");
 
             // clean up
             sb_tree_free(root);
