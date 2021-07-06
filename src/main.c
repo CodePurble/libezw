@@ -1,17 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <math.h>
 #include "utils.h"
 #include "wavelib.h"
 #include "sbtree.h"
-#include "ezw.h"
+#include "smap.h"
+#include "queue.h"
 
-#define ROWS 16
-#define COLS 16
+#define ROWS 8
+#define COLS 8
 #define L 8
-#define WAVE
 
-#ifndef WAVE
+/* #define QTEST */
+
+#if defined(QTEST)
+#include "queue.h"
+int main()
+{
+    Queue *q = NULL;
+    Node *n = NULL;
+    int arr[10];
+    for(int i = 0; i < 10; i++) {
+        arr[i] = i;
+        q = enqueue(q, &arr[i]);
+    }
+    queue_pretty_print(q);
+    for(int i = 0; i < 10; i++) {
+        n = dequeue(q);
+        DEBUG_INT("head", *(int *) n->data);
+    }
+    queue_pretty_print(q);
+}
+#elif defined(SBTEST)
 int main()
 {
     double LL3 = 57.0;
@@ -84,18 +104,18 @@ int main()
 #else
 int main(int argc, char **argv)
 {
-    bool return_error = false;
+    char return_error = 0;
 
     if(argc == 1) {
         fprintf(stderr, "Error: Requires at least one argument\n");
-        return_error = true;
+        return_error = 1;
     }
     else if(argc == 2) {
         unsigned char *pix_arr = calloc(ROWS*COLS, 1); // array of 8 bit vals
         FILE *img_bin = fopen(argv[1], "rb");
         if(!img_bin) {
             fprintf(stderr, "Unable to open file: %s\n", argv[1]);
-            return_error = true;
+            return_error = 1;
         }
         else {
             read_binary_file(img_bin, pix_arr, ROWS, COLS);
@@ -110,7 +130,7 @@ int main(int argc, char **argv)
 
         if(!img_bin) {
             fprintf(stderr, "Unable to open file: %s\n", argv[1]);
-            return_error = true;
+            return_error = 1;
         }
         else {
             read_binary_file(img_bin, pix_arr, ROWS, COLS);
@@ -119,7 +139,7 @@ int main(int argc, char **argv)
 
         if(!coeff_bin) {
             fprintf(stderr, "Unable to open file: %s\n", argv[2]);
-            return_error = true;
+            return_error = 1;
         }
         else {
             wave_object obj;
@@ -133,7 +153,8 @@ int main(int argc, char **argv)
             oup = (double *) calloc(N, sizeof(double));
             inv_out = (double *) calloc(N, sizeof(double));
 
-            int J = 3; // number of decompositions
+            // number of decompositions = max possible for the given dimensions
+            int J = (int) log2(ROWS);
 
             wt = wt2_init(obj, "dwt", ROWS, COLS, J);
 
@@ -143,9 +164,12 @@ int main(int argc, char **argv)
                     oup[i*COLS + k] = 0.0;
                 }
             }
+
             SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
+            Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
-            sb_tree_print_preorder(root);
+            smap_root = smap_treeify(root, J);
+            smap_tree_print_preorder(smap_root);
             printf("\n");
 
             // clean up
