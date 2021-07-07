@@ -16,7 +16,9 @@ add_executable(main
     ./src/utils.c
     ./src/sbtree.c
     ./src/smap.c
+    ./src/node.c
     ./src/queue.c
+    ./src/stack.c
     )
 
 target_link_libraries(main PUBLIC wavelib m) # "m" to link math.h

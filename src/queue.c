@@ -1,15 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "queue.h"
+#include "node.h"
 #include "utils.h"
-
-Node *create_node(void *data)
-{
-    Node *new_node = (Node *) malloc(sizeof(Node));
-    new_node->data = data;
-    new_node->next = NULL;
-    return new_node;
-}
 
 Queue *enqueue(Queue *q, void *data)
 {
@@ -46,6 +39,14 @@ Node *dequeue(Queue *q)
         }
     }
     return node;
+}
+
+void free_queue(Queue *q)
+{
+    while(q->head) {
+        free_node(dequeue(q));
+    }
+    free(q);
 }
 
 // only for testing, will segfault otherwise
