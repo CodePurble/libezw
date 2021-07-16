@@ -5,15 +5,35 @@
 #include "wavelib.h"
 #include "sbtree.h"
 #include "smap.h"
+#include "ezw.h"
 #include "queue.h"
 
 #define ROWS 8
 #define COLS 8
 #define L 8
 
-/* #define QTEST */
+/* #define STACKTEST */
 
-#if defined(QTEST)
+#if defined(STACKTEST)
+#include "stack.h"
+int main()
+{
+    Stack *st = NULL;
+    Node *n = NULL;
+    int arr[10];
+    for(int i = 0; i < 10; i++) {
+        arr[i] = i;
+        st = push(st, &arr[i]);
+    }
+    stack_pretty_print(st);
+    for(int i = 0; i < 10; i++) {
+        n = pop(st);
+        DEBUG_INT("top", *(int *) n->data);
+    }
+    stack_pretty_print(st);
+    return 0;
+}
+#elif defined(QTEST)
 #include "queue.h"
 int main()
 {
@@ -165,12 +185,19 @@ int main(int argc, char **argv)
                 }
             }
 
+            Queue *dominant_list = NULL;
             SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
             Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
             smap_root = smap_treeify(root, J);
-            smap_tree_print_preorder(smap_root);
-            printf("\n");
+            // for(int i = 0; i < 4; i++) {
+            // }
+            dominant_list = dominant_pass(smap_root, 1024);
+            // smap_tree_print_preorder(smap_root, FULL);
+            queue_pretty_print(dominant_list);
+            // printf("\n\nNEXT\n\n");
+            // dominant_pass(smap_root->children[1], 1024);
+            // smap_tree_print_preorder(smap_root, FULL);
 
             // clean up
             sb_tree_free(root);
@@ -190,5 +217,6 @@ int main(int argc, char **argv)
     else {
         return 0;
     }
+    return 0;
 }
 #endif // WAVE

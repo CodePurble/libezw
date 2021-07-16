@@ -50,12 +50,18 @@ Smap_tree_node *smap_tree_init_root(double val,
  *  Breadth first insertion:
  *  1) Dequeued value is inserted into the Smap_tree
  *  2) The newly added nodes are enqueued
+ *
+ *  New quads are inserted as children to the head of the queue, which is
+ *  then dequeued. The newly inserted nodes are enqueued in order.
 **/
 Queue *smap_tree_insert_quad(Queue *q, double *cvals)
 {
     int start = 0;
     Node *head = dequeue(q);
-    Smap_tree_node *curr = head->data;
+    Smap_tree_node *curr = (Smap_tree_node *) head->data;
+    // DEBUG_DOUBLE("inserting quad at", curr->coeff);
+    // DEBUG_ARR_F_1(cvals, 4);
+    // DEBUG_BLANK;
     if(curr->isroot) {
         start = 1;
     }
@@ -63,18 +69,14 @@ Queue *smap_tree_insert_quad(Queue *q, double *cvals)
         curr->children[i] = smap_tree_init_node(cvals[i]);
         q = enqueue(q, curr->children[i]);
     }
+    // queue_pretty_print(q);
+    // printf("\n");
     return q;
 }
 
 Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
 {
     Queue *q = NULL;
-
-    // Coeffs of all subbands in current level
-    double *curr_coeffs[3] = {NULL};
-
-    int dim;
-    int num_quads = 0;
     Smap_tree_node *smap_root = smap_tree_init_root(sb_root->ll->coeffs[0],
                                                     sb_root->hl->coeffs[0],
                                                     sb_root->lh->coeffs[0],
@@ -85,6 +87,10 @@ Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
         q = enqueue(q, smap_root->children[i]);
     }
 
+    // Coeffs of all subbands in current level
+    double *curr_coeffs[3] = {NULL};
+    int dim;
+    int num_quads = 0;
     // Rest of the levels
     for(int i = 2; i <= levels; i++) {
         dim = pow(2, i-1);
@@ -114,21 +120,47 @@ Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
     return smap_root;
 }
 
-void smap_tree_print_preorder(Smap_tree_node *root)
+void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p)
 {
     if(root) {
-        printf("%f | ", root->coeff);
+        switch(p) {
+            case COEFF:
+                printf("%f\n", root->coeff);
+                break;
+            case TYPE:
+                printf("%s\n", smap_symbol_to_str(root->type));
+                break;
+            case FULL:
+                printf("(%f, %s)\n", root->coeff, smap_symbol_to_str(root->type));
+                break;
+        }
     }
     if(root->children[0]) {
-        smap_tree_print_preorder(root->children[0]);
+        smap_tree_print_preorder(root->children[0], p);
     }
     if(root->children[1]) {
-        smap_tree_print_preorder(root->children[1]);
+        smap_tree_print_preorder(root->children[1], p);
     }
     if(root->children[2]) {
-        smap_tree_print_preorder(root->children[2]);
+        smap_tree_print_preorder(root->children[2], p);
     }
     if(root->children[3]) {
-        smap_tree_print_preorder(root->children[3]);
+        smap_tree_print_preorder(root->children[3], p);
+    }
+}
+
+char* smap_symbol_to_str(enum smap_symbol s)
+{
+    switch(s) {
+        case SP:
+            return "SP";
+        case SN:
+            return "SN";
+        case IZ:
+            return "IZ";
+        case ZR:
+            return "ZR";
+        case U:
+            return "U";
     }
 }
