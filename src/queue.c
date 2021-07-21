@@ -62,38 +62,35 @@ void queue_pretty_print(Queue *q, enum q_type t)
     if(q) {
         Node *curr = q->head;
         switch(t) {
-            case SMAP_TREE_NODE:
-                {
-                    Smap_tree_node *curr_smap_node = NULL;
-                    while(curr) {
-                        curr_smap_node = (Smap_tree_node *) curr->data;
-                        printf("%f ", curr_smap_node->coeff);
-                        curr = curr->next;
-                    }
+            case SMAP_TREE_NODE: {
+                Smap_tree_node *curr_smap_node = NULL;
+                while(curr) {
+                    curr_smap_node = (Smap_tree_node *) curr->data;
+                    printf("%f ", curr_smap_node->coeff);
+                    curr = curr->next;
                 }
                 break;
-            case INT:
-                {
-                    int *val = NULL;
-                    while(curr) {
-                        val = (int *) curr->data;
-                        printf("%d ", *val);
-                        curr = curr->next;
-                    }
+            }
+            case INT: {
+                int *val = NULL;
+                while(curr) {
+                    val = (int *) curr->data;
+                    printf("%d ", *val);
+                    curr = curr->next;
                 }
                 break;
-            case DOUBLE:
-                {
-                    double *val = NULL;
-                    while(curr) {
-                        val = (double *) curr->data;
-                        printf("%f ", *val);
-                        curr = curr->next;
-                    }
+            }
+            case DOUBLE: {
+                double *val = NULL;
+                while(curr) {
+                    val = (double *) curr->data;
+                    printf("%f ", *val);
+                    curr = curr->next;
                 }
                 break;
+            }
         }
-        printf("\n");
+            printf("\n");
     }
     else {
         printf("Queue is NULL\n");
