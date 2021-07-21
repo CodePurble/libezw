@@ -11,9 +11,15 @@ typedef struct Queue {
     Node *tail;
 } Queue;
 
+enum q_type {
+    SMAP_TREE_NODE,
+    INT,
+    DOUBLE
+};
+
 Queue *enqueue(Queue *q, void *data);
 Node *dequeue(Queue *q);
 void free_queue(Queue *q);
-void queue_pretty_print(Queue *q);
+void queue_pretty_print(Queue *q, enum q_type t);
 
 #endif // QUEUE_H

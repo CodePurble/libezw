@@ -9,7 +9,7 @@ Queue *enqueue(Queue *q, void *data)
 {
     // If no queue
     if(!q) {
-        q = malloc(sizeof(Queue));
+        q = (Queue *) malloc(sizeof(Queue));
         q->head = NULL;
         q->tail = NULL;
     }
@@ -57,14 +57,45 @@ void free_queue(Queue *q)
 }
 
 // only for testing, will segfault otherwise
-void queue_pretty_print(Queue *q)
+void queue_pretty_print(Queue *q, enum q_type t)
 {
-    Node *curr = q->head;
-    Smap_tree_node *curr_smap_node = NULL;
-    while(curr) {
-        curr_smap_node = (Smap_tree_node *) curr->data;
-        printf("%f ", curr_smap_node->coeff);
-        curr = curr->next;
+    if(q) {
+        Node *curr = q->head;
+        switch(t) {
+            case SMAP_TREE_NODE:
+                {
+                    Smap_tree_node *curr_smap_node = NULL;
+                    while(curr) {
+                        curr_smap_node = (Smap_tree_node *) curr->data;
+                        printf("%f ", curr_smap_node->coeff);
+                        curr = curr->next;
+                    }
+                }
+                break;
+            case INT:
+                {
+                    int *val = NULL;
+                    while(curr) {
+                        val = (int *) curr->data;
+                        printf("%d ", *val);
+                        curr = curr->next;
+                    }
+                }
+                break;
+            case DOUBLE:
+                {
+                    double *val = NULL;
+                    while(curr) {
+                        val = (double *) curr->data;
+                        printf("%f ", *val);
+                        curr = curr->next;
+                    }
+                }
+                break;
+        }
+        printf("\n");
     }
-    printf("\n");
+    else {
+        printf("Queue is NULL\n");
+    }
 }

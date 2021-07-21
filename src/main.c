@@ -186,6 +186,7 @@ int main(int argc, char **argv)
             }
 
             Queue *dominant_list = NULL;
+            Queue *symbols = NULL;
             SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
             Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
@@ -194,7 +195,9 @@ int main(int argc, char **argv)
             // }
             dominant_list = dominant_pass(smap_root, 1024);
             // smap_tree_print_preorder(smap_root, FULL);
-            queue_pretty_print(dominant_list);
+            queue_pretty_print(dominant_list, SMAP_TREE_NODE);
+            symbols = subordinate_pass(dominant_list, 1024);
+            queue_pretty_print(symbols, INT);
             // printf("\n\nNEXT\n\n");
             // dominant_pass(smap_root->children[1], 1024);
             // smap_tree_print_preorder(smap_root, FULL);
