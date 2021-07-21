@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <gsl/gsl_wavelet2d.h>
 #include "utils.h"
-#include "wavelib.h"
 #include "sbtree.h"
 #include "smap.h"
 #include "ezw.h"
@@ -11,8 +11,6 @@
 #define ROWS 8
 #define COLS 8
 #define L 8
-
-/* #define STACKTEST */
 
 #if defined(STACKTEST)
 #include "stack.h"
@@ -162,55 +160,44 @@ int main(int argc, char **argv)
             return_error = 1;
         }
         else {
-            wave_object obj;
-            wt2_object wt;
-            double *inp, *oup, *inv_out;
+            gsl_wavelet *obj;
+            gsl_wavelet_workspace *ws;
+            double *oup, *inv_out;
             int N = ROWS*COLS;
 
-            char *name = "haar";
-            obj = wave_init(name);// Initialize the wavelet
-            inp = (double *) calloc(N, sizeof(double));
+            obj = gsl_wavelet_alloc(gsl_wavelet_haar, 2);
+            ws = gsl_wavelet_workspace_alloc(ROWS*COLS);
             oup = (double *) calloc(N, sizeof(double));
             inv_out = (double *) calloc(N, sizeof(double));
 
-            // number of decompositions = max possible for the given dimensions
-            int J = (int) log2(ROWS);
-
-            wt = wt2_init(obj, "dwt", ROWS, COLS, J);
-
             for (int i = 0; i < ROWS; ++i) {
                 for (int k = 0; k < COLS; ++k) {
-                    inp[i*COLS + k] = (double) pix_arr[i*COLS + k];
-                    oup[i*COLS + k] = 0.0;
+                    oup[i*COLS + k] = (double) pix_arr[i*COLS + k];
                 }
             }
-
-            Queue *dominant_list = NULL;
-            Queue *symbols = NULL;
-            SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
-            Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
-            root = sb_treeify(J, inp, ROWS, COLS);
-            smap_root = smap_treeify(root, J);
-            // for(int i = 0; i < 4; i++) {
-            // }
-            dominant_list = dominant_pass(smap_root, 1024);
-            // smap_tree_print_preorder(smap_root, FULL);
-            queue_pretty_print(dominant_list, SMAP_TREE_NODE);
-            symbols = subordinate_pass(dominant_list, 1024);
-            queue_pretty_print(symbols, INT);
-            // printf("\n\nNEXT\n\n");
-            // dominant_pass(smap_root->children[1], 1024);
-            // smap_tree_print_preorder(smap_root, FULL);
-
-            // clean up
-            sb_tree_free(root);
-            wave_free(obj);
-            wt2_free(wt);
-            free(inp);
+            int ret = gsl_wavelet2d_nstransform_forward(obj, oup, ROWS, ROWS, COLS, ws);
+            float curr_coeff;
+            if(ret == GSL_SUCCESS) {
+                for (int i = 0; i < ROWS; ++i) {
+                    for (int k = 0; k < COLS; ++k) {
+                        curr_coeff = oup[i*COLS + k];
+                        if(curr_coeff >= 0) {
+                            printf(" %-11f ", curr_coeff);
+                        }
+                        else {
+                            printf("%-12f ", curr_coeff);
+                        }
+                    }
+                    printf("\n");
+                }
+            }
+            else {
+                printf("error\n");
+            }
+            gsl_wavelet_free(obj);
+            gsl_wavelet_workspace_free(ws);
             free(oup);
             free(pix_arr);
-            free(inv_out);
-            fclose(coeff_bin);
         }
     }
 

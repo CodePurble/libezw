@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import numpy 
+import numpy
 import pywt
 from pprint import pprint
 arr = []

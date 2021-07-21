@@ -7,19 +7,17 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory(wavelib)
-
 include_directories(include)
 add_executable(main
-    ./src/ezw.c
+    # ./src/ezw.c
     ./src/main.c
     ./src/utils.c
-    ./src/sbtree.c
-    ./src/smap.c
-    ./src/node.c
-    ./src/queue.c
-    ./src/stack.c
+    # ./src/sbtree.c
+    # ./src/smap.c
+    # ./src/node.c
+    # ./src/queue.c
+    # ./src/stack.c
     )
 
-target_link_libraries(main PUBLIC wavelib m) # "m" to link math.h
+target_link_libraries(main PUBLIC gsl gslcblas m) # "m" to link math.h
 
