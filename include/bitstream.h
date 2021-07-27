@@ -2,16 +2,11 @@
 #define BITSTREAM_H
 #include "queue.h"
 
-// TODO
-// A bitstream is a main header followed by groups of "mini-headers" and
-// symbols packed into bytes
-// Operations that need to be implemented:
-// * Initialise bitstream
-// * Close bitstream
-// * Pack symbols into bytes
-// * Create header and mini-headers
-// * Write next set of symbols
-// * Read next set of symbols
+typedef struct {
+    unsigned short threshold_pow;
+    unsigned int num_bytes;
+    unsigned char *bytes;
+} mini_header;
 
 // WARNING
 // The __packed__ attribute will result in unsafe behaviour on non x86

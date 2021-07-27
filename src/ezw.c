@@ -162,3 +162,35 @@ Queue *subordinate_pass(Queue *dominant_list, int threshold)
     return bitstream_elements;
 }
 
+void ezw(Smap_tree_node *smap_root, unsigned char iter)
+{
+    // bitplane coding is adopted here
+    // https://en.wikipedia.org/wiki/Bit_plane
+    // bitplanes can be coded efficiently
+    unsigned int threshold = pow(2, (int) floor((int) log2(smap_root->coeff)));
+
+    Queue *dominant_list = NULL;
+    Queue *symbols = NULL;
+    mini_header *m_hdr = NULL;
+
+    int i = 0;
+    while(i < iter) {
+        if(threshold > 0) {
+            BOLD_CYAN_FG("Iteration\n");
+            dominant_list = dominant_pass(smap_root, threshold);
+            queue_pretty_print(dominant_list, SMAP_TREE_NODE);
+            symbols = subordinate_pass(dominant_list, threshold);
+            queue_pretty_print(symbols, INT);
+            m_hdr = create_mini_header(threshold, symbols);
+            write_bitstream_file("foo.bin", W, m_hdr, 8);
+            exit(0);
+            threshold /= 2;
+            BOLD_CYAN_FG("...\n\n");
+        }
+        else {
+            break;
+        }
+        i++;
+    }
+}
+
