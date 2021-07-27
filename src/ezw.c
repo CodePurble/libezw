@@ -24,6 +24,8 @@ enum smap_symbol encode_coeff(float coeff, int threshold)
     return symbol;
 }
 
+// TODO: Find a way to add only the "main" zerotree roots to the dominant list
+// Currently, nothing marked ZR is added. Only S{P/N} and IZ are added
 void check_descendants(Smap_tree_node *parent, int threshold)
 {
     unsigned char is_zr = 1;
@@ -43,22 +45,21 @@ void check_descendants(Smap_tree_node *parent, int threshold)
             curr_node = dequeue(q);
             curr_smap_node = (Smap_tree_node *) curr_node->data;
             curr_smap_node->type = encode_coeff(curr_smap_node->coeff, threshold);
-            DEBUG_DOUBLE("coeff", curr_smap_node->coeff);
-            DEBUG_STR("type", smap_symbol_to_str(curr_smap_node->type));
+            // DEBUG_DOUBLE("coeff", curr_smap_node->coeff);
+            // DEBUG_STR("type", smap_symbol_to_str(curr_smap_node->type));
             if(curr_smap_node->type == SP || curr_smap_node->type == SN) {
                 is_zr = 0;
-                break;
+            //     break;
             }
-            else {
+            // else {
                 for(int i = 0; i < 4; i++) {
                     if(curr_smap_node->children[i]) {
-                        DEBUG_DOUBLE("enqueing child", curr_smap_node->children[i]->coeff);
                         backtrack = push(backtrack, curr_smap_node->children[i]);
                         q = enqueue(q, curr_smap_node->children[i]);
                     }
                 }
-                DEBUG_STR("", "");
-            }
+                // DEBUG_STR("", "");
+            // }
         }
 
         // Trace back the tree and encode them accordingly
@@ -70,14 +71,14 @@ void check_descendants(Smap_tree_node *parent, int threshold)
             if(is_zr) {
                 curr_smap_node->type = ZR;
             }
-            else {
-                if(curr_smap_node->type == U || curr_smap_node->type == ZR) {
-                    curr_smap_node->type = IZ;
-                }
-            }
-            DEBUG_DOUBLE("backtracking coeff", curr_smap_node->coeff);
-            DEBUG_STR("type", smap_symbol_to_str(curr_smap_node->type));
-            DEBUG_STR("", "");
+            // else {
+            //     if(curr_smap_node->type == U) {
+            //         curr_smap_node->type = IZ;
+            //     }
+            // }
+            // DEBUG_DOUBLE("backtracking coeff", curr_smap_node->coeff);
+            // DEBUG_STR("type", smap_symbol_to_str(curr_smap_node->type));
+            // DEBUG_STR("", "");
         }
     }
 }
@@ -95,24 +96,76 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
     // bitplanes can be coded efficiently
     /* int threshold = pow(2, (int) floor((int) log2(max))); */
 
-    // Manually add first 4 coeffs to the queue
+    // Manually add first one
     q = enqueue(q, smap_root);
-    for(int i = 1; i < 4; i++) {
-        q = enqueue(q, smap_root->children[i]);
-    }
 
     while(q->head){
         curr_queue_node = dequeue(q);
         if(curr_queue_node) {
             curr_smap_node = (Smap_tree_node *) curr_queue_node->data;
-            if(curr_smap_node->type == U) {
-                // DEBUG_STR("U", "");
-                q = enqueue(q, curr_smap_node);
-                dominant_list = enqueue(dominant_list, curr_smap_node);
-                check_descendants(curr_smap_node, threshold);
+            for(int i = 0; i < 4; i++) {
+                if(curr_smap_node->children[i]) {
+                    q = enqueue(q, curr_smap_node->children[i]);
+                }
+            }
+            check_descendants(curr_smap_node, threshold);
+            switch(curr_smap_node->type) {
+                case SP:
+                case SN:
+                    {
+                        smap_tree_print_preorder(curr_smap_node, ALL);
+                        dominant_list = enqueue(dominant_list, curr_smap_node);
+                        DEBUG_STR("do", "be the outside");
+                        for(int i = 0; i < 4; i++) {
+                            if(curr_smap_node->children[i] && curr_smap_node->children[i]->type == ZR) {
+                                DEBUG_STR("do", "be the inside");
+                                dominant_list = enqueue(dominant_list, curr_smap_node->children[i]);
+                            }
+                        }
+                        break;
+                    }
+                case IZ:
+                    dominant_list = enqueue(dominant_list, curr_smap_node);
+                    break;
+                case ZR:
+                case U:
+                    break;
             }
         }
     }
     return dominant_list;
+}
+
+Queue *subordinate_pass(Queue *dominant_list, int threshold)
+{
+    Queue *bitstream_elements = NULL;
+    if(dominant_list) {
+        Node *curr_queue_node = dominant_list->head;
+        Smap_tree_node *curr_smap_node = NULL;
+        while(curr_queue_node) {
+            unsigned char *symbol = (unsigned char *) malloc(sizeof(unsigned char));
+            curr_smap_node = (Smap_tree_node *) curr_queue_node->data;
+            if(curr_smap_node->type == SP || curr_smap_node->type == SN) {
+                curr_smap_node->sig_and_encoded = 1;
+                // add the third bit to the symbol
+                if((fabs(curr_smap_node->coeff) >= 1.5*threshold) &&
+                        (fabs(curr_smap_node->coeff) < 2*threshold)) {
+                    DEBUG_STR("spsn", "1");
+                    *symbol = curr_smap_node->type << 1 | 0x1;
+                }
+                else {
+                    DEBUG_STR("spsn", "0");
+                    *symbol = curr_smap_node->type << 1;
+                }
+            }
+            else {
+                DEBUG_STR("non", "0");
+                *symbol = curr_smap_node->type << 1;
+            }
+            bitstream_elements = enqueue(bitstream_elements, symbol);
+            curr_queue_node = curr_queue_node->next;
+        }
+    }
+    return bitstream_elements;
 }
 

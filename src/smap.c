@@ -14,6 +14,7 @@ Smap_tree_node *smap_tree_init_node(double coeff)
     new_node->children[2] = NULL;
     new_node->children[3] = NULL;
     new_node->isroot = 0;
+    new_node->sig_and_encoded = 0;
     return new_node;
 }
 
@@ -31,6 +32,27 @@ Smap_tree_node *smap_tree_init_root(double val,
     new_node->children[3] = c4;
     new_node->isroot = 1;
     return new_node;
+}
+
+// Recursively "reset" all node types to U
+Smap_tree_node* smap_tree_reset(Smap_tree_node *root)
+{
+    if(root) {
+        root->type = U;
+    }
+    if(root->children[0]) {
+        smap_tree_reset(root->children[0]);
+    }
+    if(root->children[1]) {
+        smap_tree_reset(root->children[1]);
+    }
+    if(root->children[2]) {
+        smap_tree_reset(root->children[2]);
+    }
+    if(root->children[3]) {
+        smap_tree_reset(root->children[3]);
+    }
+    return root;
 }
 
 /**
@@ -130,7 +152,7 @@ void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p)
             case TYPE:
                 printf("%s\n", smap_symbol_to_str(root->type));
                 break;
-            case FULL:
+            case ALL:
                 printf("(%f, %s)\n", root->coeff, smap_symbol_to_str(root->type));
                 break;
         }
@@ -162,5 +184,7 @@ char* smap_symbol_to_str(enum smap_symbol s)
             return "ZR";
         case U:
             return "U";
+        default:
+            return "";
     }
 }

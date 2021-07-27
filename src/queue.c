@@ -56,7 +56,6 @@ void free_queue(Queue *q)
     free(q);
 }
 
-// only for testing, will segfault otherwise
 void queue_pretty_print(Queue *q, enum q_type t)
 {
     if(q) {
@@ -66,7 +65,8 @@ void queue_pretty_print(Queue *q, enum q_type t)
                 Smap_tree_node *curr_smap_node = NULL;
                 while(curr) {
                     curr_smap_node = (Smap_tree_node *) curr->data;
-                    printf("%f ", curr_smap_node->coeff);
+                    printf("(%f %s) ", curr_smap_node->coeff,
+                            smap_symbol_to_str(curr_smap_node->type));
                     curr = curr->next;
                 }
                 break;
@@ -93,6 +93,6 @@ void queue_pretty_print(Queue *q, enum q_type t)
             printf("\n");
     }
     else {
-        printf("Queue is NULL\n");
+        printf("Queue is empty\n");
     }
 }

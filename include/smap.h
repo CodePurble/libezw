@@ -14,7 +14,7 @@ enum smap_symbol { // significance map value
 enum print_conf {
     COEFF,
     TYPE,
-    FULL
+    ALL
 };
 
 typedef struct Smap_tree_node {
@@ -22,6 +22,7 @@ typedef struct Smap_tree_node {
     struct Smap_tree_node *children[4];
     char isroot : 1;
     enum smap_symbol type;
+    unsigned char sig_and_encoded;
 } Smap_tree_node;
 
 char* smap_symbol_to_str(enum smap_symbol s);
@@ -35,6 +36,7 @@ Smap_tree_node *smap_tree_init_root(double val,
 
 Queue *smap_tree_insert_quad(Queue *q, double *cvals);
 Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels);
+Smap_tree_node* smap_tree_reset(Smap_tree_node *root);
 
 
 

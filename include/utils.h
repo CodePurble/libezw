@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include<stdio.h>
+#include "smap.h"
 
 static inline void BOLD_CYAN_FG(char *str)
 {
@@ -40,6 +41,15 @@ static inline void DEBUG_ARR_F_2(double **x, int r, int c) {
             printf("%f ", x[i][j]);
         }
         printf("\n");
+    }
+}
+
+static inline void DEBUG_SMAP_NODE(Smap_tree_node *n) {
+    if(n) {
+        DEBUG_DOUBLE("coeff", n->coeff);
+    }
+    else {
+        DEBUG_STR("coeff", "NULL");
     }
 }
 
