@@ -9,12 +9,13 @@ Smap_tree_node *smap_tree_init_node(double coeff)
     Smap_tree_node *new_node = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
     new_node->coeff = coeff;
     new_node->type = U;
+    new_node->parent = NULL;
     new_node->children[0] = NULL;
     new_node->children[1] = NULL;
     new_node->children[2] = NULL;
     new_node->children[3] = NULL;
     new_node->isroot = 0;
-    new_node->sig_and_encoded = 0;
+    new_node->not_available = 0;
     return new_node;
 }
 
@@ -27,9 +28,13 @@ Smap_tree_node *smap_tree_init_root(double val,
     Smap_tree_node *c2 = smap_tree_init_node(c1val);
     Smap_tree_node *c3 = smap_tree_init_node(c2val);
     Smap_tree_node *c4 = smap_tree_init_node(c3val);
+    new_node->parent = NULL;
     new_node->children[1] = c2;
     new_node->children[2] = c3;
     new_node->children[3] = c4;
+    for(int i = 1; i < 4; i++) {
+        new_node->children[i]->parent = new_node;
+    }
     new_node->isroot = 1;
     return new_node;
 }
@@ -89,6 +94,7 @@ Queue *smap_tree_insert_quad(Queue *q, double *cvals)
     }
     for(int i = start; i < 4; i++) {
         curr->children[i] = smap_tree_init_node(cvals[i]);
+        curr->children[i]->parent = curr;
         q = enqueue(q, curr->children[i]);
     }
     // queue_pretty_print(q);
@@ -123,19 +129,12 @@ Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
         curr_coeffs[1] = sb_tree_get_coeff(sb_root, LH, i);
         curr_coeffs[2] = sb_tree_get_coeff(sb_root, HH, i);
 
-        quads = quads_from_arr(curr_coeffs[0], dim, dim);
-        for(int j = 0; j < num_quads; j++) {
-            q = smap_tree_insert_quad(q, quads[j]);
+        for(int k = 0; k < 3; k++) {
+            quads = quads_from_arr(curr_coeffs[k], dim, dim);
+            for(int j = 0; j < num_quads; j++) {
+                q = smap_tree_insert_quad(q, quads[j]);
+            }
         }
-        quads = quads_from_arr(curr_coeffs[1], dim, dim);
-        for(int j = 0; j < num_quads; j++) {
-            q = smap_tree_insert_quad(q, quads[j]);
-        }
-        quads = quads_from_arr(curr_coeffs[2], dim, dim);
-        for(int j = 0; j < num_quads; j++) {
-            q = smap_tree_insert_quad(q, quads[j]);
-        }
-
         free(quads);
     }
     free(q);

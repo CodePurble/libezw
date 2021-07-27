@@ -200,7 +200,9 @@ int main(int argc, char **argv)
             Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
             smap_root = smap_treeify(root, J);
-            dominant_list = dominant_pass(smap_root, 1024);
+            // smap_tree_print_preorder(smap_root, ALL);
+            dominant_list = dominant_pass(smap_root, 256);
+            // smap_tree_print_preorder(smap_root, ALL);
             queue_pretty_print(dominant_list, SMAP_TREE_NODE);
             // symbols = subordinate_pass(dominant_list, 1024);
             // queue_pretty_print(symbols, INT);

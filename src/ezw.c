@@ -49,17 +49,16 @@ void check_descendants(Smap_tree_node *parent, int threshold)
             // DEBUG_STR("type", smap_symbol_to_str(curr_smap_node->type));
             if(curr_smap_node->type == SP || curr_smap_node->type == SN) {
                 is_zr = 0;
-            //     break;
+                break;
             }
-            // else {
+            else {
                 for(int i = 0; i < 4; i++) {
                     if(curr_smap_node->children[i]) {
                         backtrack = push(backtrack, curr_smap_node->children[i]);
                         q = enqueue(q, curr_smap_node->children[i]);
                     }
                 }
-                // DEBUG_STR("", "");
-            // }
+            }
         }
 
         // Trace back the tree and encode them accordingly
@@ -71,11 +70,11 @@ void check_descendants(Smap_tree_node *parent, int threshold)
             if(is_zr) {
                 curr_smap_node->type = ZR;
             }
-            // else {
-            //     if(curr_smap_node->type == U) {
-            //         curr_smap_node->type = IZ;
-            //     }
-            // }
+            else {
+                if(curr_smap_node->type == U || curr_smap_node->type == ZR) {
+                    curr_smap_node->type = IZ;
+                }
+            }
             // DEBUG_DOUBLE("backtracking coeff", curr_smap_node->coeff);
             // DEBUG_STR("type", smap_symbol_to_str(curr_smap_node->type));
             // DEBUG_STR("", "");
@@ -112,22 +111,15 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
             switch(curr_smap_node->type) {
                 case SP:
                 case SN:
-                    {
-                        smap_tree_print_preorder(curr_smap_node, ALL);
-                        dominant_list = enqueue(dominant_list, curr_smap_node);
-                        DEBUG_STR("do", "be the outside");
-                        for(int i = 0; i < 4; i++) {
-                            if(curr_smap_node->children[i] && curr_smap_node->children[i]->type == ZR) {
-                                DEBUG_STR("do", "be the inside");
-                                dominant_list = enqueue(dominant_list, curr_smap_node->children[i]);
-                            }
-                        }
-                        break;
-                    }
                 case IZ:
                     dominant_list = enqueue(dominant_list, curr_smap_node);
                     break;
                 case ZR:
+                    {
+                        if(curr_smap_node->parent->type != ZR) {
+                            dominant_list = enqueue(dominant_list, curr_smap_node);
+                        }
+                    }
                 case U:
                     break;
             }
@@ -146,7 +138,7 @@ Queue *subordinate_pass(Queue *dominant_list, int threshold)
             unsigned char *symbol = (unsigned char *) malloc(sizeof(unsigned char));
             curr_smap_node = (Smap_tree_node *) curr_queue_node->data;
             if(curr_smap_node->type == SP || curr_smap_node->type == SN) {
-                curr_smap_node->sig_and_encoded = 1;
+                curr_smap_node->not_available = 1;
                 // add the third bit to the symbol
                 if((fabs(curr_smap_node->coeff) >= 1.5*threshold) &&
                         (fabs(curr_smap_node->coeff) < 2*threshold)) {

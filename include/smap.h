@@ -19,10 +19,11 @@ enum print_conf {
 
 typedef struct Smap_tree_node {
     double coeff;
+    struct Smap_tree_node *parent;
     struct Smap_tree_node *children[4];
     char isroot : 1;
     enum smap_symbol type;
-    unsigned char sig_and_encoded;
+    unsigned char not_available;
 } Smap_tree_node;
 
 char* smap_symbol_to_str(enum smap_symbol s);
@@ -37,7 +38,4 @@ Smap_tree_node *smap_tree_init_root(double val,
 Queue *smap_tree_insert_quad(Queue *q, double *cvals);
 Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels);
 Smap_tree_node* smap_tree_reset(Smap_tree_node *root);
-
-
-
 #endif // SMAP_H
