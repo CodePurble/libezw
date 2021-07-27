@@ -24,8 +24,6 @@ enum smap_symbol encode_coeff(float coeff, int threshold)
     return symbol;
 }
 
-// TODO: Find a way to add only the "main" zerotree roots to the dominant list
-// Currently, nothing marked ZR is added. Only S{P/N} and IZ are added
 void check_descendants(Smap_tree_node *parent, int threshold)
 {
     unsigned char is_zr = 1;
@@ -116,8 +114,10 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
                     break;
                 case ZR:
                     {
-                        if(curr_smap_node->parent->type != ZR) {
-                            dominant_list = enqueue(dominant_list, curr_smap_node);
+                        if((curr_smap_node->parent
+                                    && curr_smap_node->parent->type != ZR)
+                                || curr_smap_node->isroot) {
+                                dominant_list = enqueue(dominant_list, curr_smap_node);
                         }
                     }
                 case U:
@@ -149,6 +149,7 @@ Queue *subordinate_pass(Queue *dominant_list, int threshold)
                     DEBUG_STR("spsn", "0");
                     *symbol = curr_smap_node->type << 1;
                 }
+                curr_smap_node->coeff = 0.0;
             }
             else {
                 DEBUG_STR("non", "0");

@@ -201,28 +201,11 @@ int main(int argc, char **argv)
             root = sb_treeify(J, inp, ROWS, COLS);
             smap_root = smap_treeify(root, J);
             // smap_tree_print_preorder(smap_root, ALL);
-            dominant_list = dominant_pass(smap_root, 256);
-            // smap_tree_print_preorder(smap_root, ALL);
+
+            dominant_list = dominant_pass(smap_root, 1024);
             queue_pretty_print(dominant_list, SMAP_TREE_NODE);
-            // symbols = subordinate_pass(dominant_list, 1024);
-            // queue_pretty_print(symbols, INT);
-            // DEBUG_STR("NEXT", "");
-            // smap_root = smap_tree_reset(smap_root);
-            // dominant_list = dominant_pass(smap_root, 512);
-            // queue_pretty_print(dominant_list, SMAP_TREE_NODE);
-            // symbols = subordinate_pass(dominant_list, 512);
-            // queue_pretty_print(symbols, INT);
-            // DEBUG_STR("NEXT", "");
-            // smap_root = smap_tree_reset(smap_root);
-            // dominant_list = dominant_pass(smap_root, 256);
-            // smap_tree_print_preorder(smap_root, ALL);
-            // queue_pretty_print(dominant_list, SMAP_TREE_NODE);
-            // symbols = subordinate_pass(dominant_list, 256);
-            // queue_pretty_print(symbols, INT);
-            // dominant_list = dominant_pass(smap_root, 256);
-            // queue_pretty_print(dominant_list, SMAP_TREE_NODE);
-            // symbols = subordinate_pass(dominant_list, 256);
-            // queue_pretty_print(symbols, INT);
+            symbols = subordinate_pass(dominant_list, 1024);
+            queue_pretty_print(symbols, INT);
 
             // clean up
             sb_tree_free(root);
