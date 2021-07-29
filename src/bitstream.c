@@ -9,11 +9,11 @@
 mini_header *create_mini_header(unsigned int threshold, Queue *symbols)
 {
     mini_header *m_hdr = malloc(sizeof(mini_header));
-    m_hdr->num_bytes = (symbols->len / 2) + (symbols->len % 2);
+    m_hdr->num_bytes = (unsigned int) (symbols->len / 2) + (symbols->len % 2);
     unsigned char curr_byte = 0xff;
     unsigned char *bytes = (unsigned char *) calloc(m_hdr->num_bytes, sizeof(unsigned char));
     Node *node_pair[2] = {NULL};
-    m_hdr->threshold_pow = log2(threshold);
+    m_hdr->threshold_pow = (unsigned short) log2(threshold);
     unsigned int ind = 0;
     while(symbols->head) {
         curr_byte = 0xff;
@@ -34,39 +34,34 @@ mini_header *create_mini_header(unsigned int threshold, Queue *symbols)
     return m_hdr;
 }
 
-void symbol_group_insert(struct symbols_group *s_grp, int count, unsigned char symbol)
+void write_bitstream_file(const char* filename, enum file_op_mode mode,
+        mini_header *m_hdr, unsigned int dim)
 {
-    switch(count) {
-        case 0:
-            s_grp->s0 = symbol;
-            break;
-        case 1:
-            s_grp->s1 = symbol;
-            break;
-        case 2:
-            s_grp->s2 = symbol;
-            break;
-        case 3:
-            s_grp->s3 = symbol;
-            break;
-        case 4:
-            s_grp->s4 = symbol;
-            break;
-        case 5:
-            s_grp->s5 = symbol;
-            break;
-        case 6:
-            s_grp->s6 = symbol;
-            break;
-        case 7:
-            s_grp->s7 = symbol;
-            break;
-        case 8:
-            s_grp->s8 = symbol;
-            break;
-        case 9:
-            s_grp->s9 = symbol;
-            break;
-        default: return;
+    FILE *fptr = NULL;
+    unsigned char dim_pow = log2(dim);
+    DEBUG_INT("num_bytes", m_hdr->num_bytes);
+    if(mode == A) {
+        fptr = fopen(filename, "ab");
     }
+    else if(mode == W) {
+        fptr = fopen(filename, "wb");
+    }
+    if(fwrite(&dim_pow, sizeof(dim_pow), 1, fptr) != 1) {
+        fprintf(stderr, "Error while writing file: %s", filename);
+        exit(1);
+    }
+    if(fwrite(&m_hdr->threshold_pow, sizeof(m_hdr->threshold_pow), 1, fptr) != 1) {
+        fprintf(stderr, "Error while writing file: %s", filename);
+        exit(1);
+    }
+    // if(fwrite(&m_hdr->num_bytes, sizeof(m_hdr->num_bytes), 1, fptr) != 1) {
+    if(fwrite(&m_hdr->num_bytes, sizeof(unsigned int), 1, fptr) != 1) {
+        fprintf(stderr, "Error while writing file: %s", filename);
+        exit(1);
+    }
+    if(fwrite(m_hdr->bytes, sizeof(m_hdr->bytes[0]), m_hdr->num_bytes, fptr) != m_hdr->num_bytes) {
+        fprintf(stderr, "Error while writing file: %s", filename);
+        exit(1);
+    }
+    fclose(fptr);
 }

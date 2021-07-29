@@ -7,10 +7,11 @@
 #include "smap.h"
 #include "ezw.h"
 #include "queue.h"
+#include "bitstream.h"
 
-#define ROWS 8
-#define COLS 8
-#define L 8
+#define ROWS 512
+#define COLS 512
+// #define L
 
 /* #define STACKTEST */
 
@@ -189,7 +190,7 @@ int main(int argc, char **argv)
             Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
             smap_root = smap_treeify(root, J);
-            ezw(smap_root, 1);
+            ezw(smap_root, 9);
             // smap_tree_print_preorder(smap_root, ALL);
 
             // clean up

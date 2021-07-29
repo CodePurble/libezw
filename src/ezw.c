@@ -6,6 +6,7 @@
 #include "ezw.h"
 #include "queue.h"
 #include "stack.h"
+#include "bitstream.h"
 
 enum smap_symbol encode_coeff(float coeff, int threshold)
 {
@@ -88,11 +89,6 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
     Node *curr_queue_node = NULL;
     Smap_tree_node *curr_smap_node = NULL;
 
-    // bitplane coding is adopted here
-    // https://en.wikipedia.org/wiki/Bit_plane
-    // bitplanes can be coded efficiently
-    /* int threshold = pow(2, (int) floor((int) log2(max))); */
-
     // Manually add first one
     q = enqueue(q, smap_root);
 
@@ -142,17 +138,14 @@ Queue *subordinate_pass(Queue *dominant_list, int threshold)
                 // add the third bit to the symbol
                 if((fabs(curr_smap_node->coeff) >= 1.5*threshold) &&
                         (fabs(curr_smap_node->coeff) < 2*threshold)) {
-                    DEBUG_STR("spsn", "1");
                     *symbol = curr_smap_node->type << 1 | 0x1;
                 }
                 else {
-                    DEBUG_STR("spsn", "0");
                     *symbol = curr_smap_node->type << 1;
                 }
                 curr_smap_node->coeff = 0.0;
             }
             else {
-                DEBUG_STR("non", "0");
                 *symbol = curr_smap_node->type << 1;
             }
             bitstream_elements = enqueue(bitstream_elements, symbol);
@@ -182,8 +175,12 @@ void ezw(Smap_tree_node *smap_root, unsigned char iter)
             symbols = subordinate_pass(dominant_list, threshold);
             queue_pretty_print(symbols, INT);
             m_hdr = create_mini_header(threshold, symbols);
-            write_bitstream_file("foo.bin", W, m_hdr, 8);
-            exit(0);
+            if(i == 0) {
+                write_bitstream_file("foo.bin", W, m_hdr, 8);
+            }
+            else {
+                write_bitstream_file("foo.bin", A, m_hdr, 8);
+            }
             threshold /= 2;
             BOLD_CYAN_FG("...\n\n");
         }

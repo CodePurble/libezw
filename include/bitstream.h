@@ -1,5 +1,6 @@
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
+#include <stdio.h>
 #include "queue.h"
 
 typedef struct {
@@ -8,32 +9,13 @@ typedef struct {
     unsigned char *bytes;
 } mini_header;
 
-// WARNING
-// The __packed__ attribute will result in unsafe behaviour on non x86
-// systems. Use this code with care.
-// ref: https://stackoverflow.com/a/8568441
-//
-// Group 10 symbols together to save space
-struct __attribute__((__packed__)) symbols_group {
-    unsigned char s0 : 3;
-    unsigned char s1 : 3;
-    unsigned char s2 : 3;
-    unsigned char s3 : 3;
-    unsigned char s4 : 3;
-    unsigned char s5 : 3;
-    unsigned char s6 : 3;
-    unsigned char s7 : 3;
-    unsigned char s8 : 3;
-    unsigned char s9 : 3;
+enum file_op_mode {
+    A, // append
+    W // write
 };
 
-struct symbol_set {
-    unsigned short threshold;
-    unsigned int size;
-    struct symbols_group *symbols;
-};
-
-void symbol_set_init(struct symbol_set *s_set, unsigned short threshold, unsigned int size);
-void symbol_group_insert(struct symbols_group *s_grp, int count, unsigned char symbol);
+mini_header *create_mini_header(unsigned int threshold, Queue *symbols);
+void write_bitstream_file(const char* filename, enum file_op_mode mode,
+        mini_header *m_hdr, unsigned int dim);
 
 #endif

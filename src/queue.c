@@ -27,6 +27,7 @@ Queue *enqueue(Queue *q, void *data)
         q->tail->next = new_node;
         q->tail = new_node;
     }
+    q->len++;
     return q;
 }
 
@@ -44,6 +45,7 @@ Node *dequeue(Queue *q)
             // move head to next in queue
             q->head = q->head->next;
         }
+        q->len--;
     }
     return node;
 }

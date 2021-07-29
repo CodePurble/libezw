@@ -9,6 +9,7 @@
 typedef struct Queue {
     Node *head;
     Node *tail;
+    int len;
 } Queue;
 
 enum q_type {
