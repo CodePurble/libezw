@@ -11,6 +11,8 @@ typedef struct Stack {
     Node *bottom;
 } Stack;
 
+// OPTIMIZE: Maybe pass by reference? Soo many copies!!
+
 Stack *push(Stack *st, void *data);
 Node *pop(Stack *st);
 void free_stack(Stack *st);

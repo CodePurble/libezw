@@ -26,6 +26,8 @@ typedef struct Smap_tree_node {
     unsigned char not_available;
 } Smap_tree_node;
 
+// OPTIMIZE: Maybe pass by reference? Soo many copies!!
+
 char* smap_symbol_to_str(enum smap_symbol s);
 
 void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p);

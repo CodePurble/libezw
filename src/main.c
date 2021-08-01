@@ -9,8 +9,6 @@
 #include "queue.h"
 #include "bitstream.h"
 
-#define ROWS 512
-#define COLS 512
 // #define L
 
 /* #define STACKTEST */
@@ -123,6 +121,8 @@ int main()
     return 0;
 }
 #else
+#define ROWS 8
+#define COLS 8
 int main(int argc, char **argv)
 {
     char return_error = 0;
@@ -186,11 +186,16 @@ int main(int argc, char **argv)
                 }
             }
 
+            const char* filename = "bar.bin";
             SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
             Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
             root = sb_treeify(J, inp, ROWS, COLS);
             smap_root = smap_treeify(root, J);
-            ezw(smap_root, 9);
+            ezw(filename, smap_root, ROWS, COLS, 9);
+
+            Queue *header_q = NULL;
+            header_q = read_bitstream_file(filename, header_q);
+            // queue_pretty_print(header_q, MINI_HDR);
             // smap_tree_print_preorder(smap_root, ALL);
 
             // clean up
