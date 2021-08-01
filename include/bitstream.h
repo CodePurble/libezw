@@ -20,6 +20,6 @@ enum file_op_mode {
 mini_header *create_mini_header(unsigned int threshold, Queue *symbols);
 void write_bitstream_file(const char* filename, enum file_op_mode mode,
         mini_header *m_hdr, unsigned int dim);
-Queue* read_bitstream_file(const char* filename, Queue *header_queue);
+Queue* read_bitstream_file(const char* filename, Queue *header_queue, unsigned char *dim_pow);
 
 #endif

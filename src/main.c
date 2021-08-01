@@ -235,7 +235,8 @@ int main(int argc, char **argv)
     ezw(outputFile, smap_root, rows, cols, iter);
 
     Queue *header_q = NULL;
-    header_q = read_bitstream_file(outputFile, header_q);
+    unsigned char dim_pow;
+    header_q = read_bitstream_file(outputFile, header_q, &dim_pow);
     // queue_pretty_print(header_q, MINI_HDR);
     // smap_tree_print_preorder(smap_root, ALL);
 

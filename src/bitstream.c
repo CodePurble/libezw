@@ -67,12 +67,11 @@ void write_bitstream_file(const char* filename, enum file_op_mode mode,
     fclose(fptr);
 }
 
-Queue* read_bitstream_file(const char* filename, Queue *header_queue)
+Queue* read_bitstream_file(const char* filename, Queue *header_queue, unsigned char *dim_pow)
 {
     FILE *fptr = fopen(filename, "rb");
 
-    unsigned char dim_pow;
-    fread(&dim_pow, sizeof(unsigned char), 1, fptr);
+    fread(dim_pow, sizeof(unsigned char), 1, fptr);
 
     unsigned short threshold_pow;
     while(fread(&threshold_pow, sizeof(unsigned short), 1, fptr) != 0) {
