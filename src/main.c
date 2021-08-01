@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -121,101 +122,131 @@ int main()
     return 0;
 }
 #else
-#define ROWS 8
-#define COLS 8
+void printhelp(unsigned char exit) {
+    FILE *f = stdout;
+    if(exit != 0) {
+        f = stderr;
+    }
+    fprintf(f, "USAGE:\n\tmain [options] imagefile\n\n");
+    fprintf(f, "MANDATORY OPTIONS:\n\t-o output file\n\t-d image dimension\n\n");
+    fprintf(f, "OPTIONAL OPTIONS:\n\t-i iterations (defaults to 3)\n\t-h show this help and exit\n\n");
+    fprintf(f, "EXAMPLE:\n\tHere, assume img.png is a 16x16 image\n\t$ main -o compressed.ezw -d 16 img.png\n");
+}
+
 int main(int argc, char **argv)
 {
-    char return_error = 0;
-
-    if(argc == 1) {
-        fprintf(stderr, "Error: Requires at least one argument\n");
-        return_error = 1;
-    }
-    else if(argc == 2) {
-        unsigned char *pix_arr = calloc(ROWS*COLS, 1); // array of 8 bit vals
-        FILE *img_bin = fopen(argv[1], "rb");
-        if(!img_bin) {
-            fprintf(stderr, "Unable to open file: %s\n", argv[1]);
-            return_error = 1;
-        }
-        else {
-            read_binary_file(img_bin, pix_arr, ROWS, COLS);
-            fclose(img_bin);
-            free(pix_arr);
-        }
-    }
-    else if(argc == 3) {
-        FILE *img_bin = fopen(argv[1], "rb");
-        FILE *coeff_bin = fopen(argv[2], "wb");
-        unsigned char *pix_arr = calloc(ROWS*COLS, 1); // array of 8 bit vals
-
-        if(!img_bin) {
-            fprintf(stderr, "Unable to open file: %s\n", argv[1]);
-            return_error = 1;
-        }
-        else {
-            read_binary_file(img_bin, pix_arr, ROWS, COLS);
-            fclose(img_bin);
-        }
-
-        if(!coeff_bin) {
-            fprintf(stderr, "Unable to open file: %s\n", argv[2]);
-            return_error = 1;
-        }
-        else {
-            wave_object obj;
-            wt2_object wt;
-            double *inp, *oup, *inv_out;
-            int N = ROWS*COLS;
-
-            char *name = "haar";
-            obj = wave_init(name);// Initialize the wavelet
-            inp = (double *) calloc(N, sizeof(double));
-            oup = (double *) calloc(N, sizeof(double));
-            inv_out = (double *) calloc(N, sizeof(double));
-
-            // number of decompositions = max possible for the given dimensions
-            int J = (int) log2(ROWS);
-
-            wt = wt2_init(obj, "dwt", ROWS, COLS, J);
-
-            for (int i = 0; i < ROWS; ++i) {
-                for (int k = 0; k < COLS; ++k) {
-                    inp[i*COLS + k] = (double) pix_arr[i*COLS + k];
-                    oup[i*COLS + k] = 0.0;
-                }
+    int opt, rows, cols;
+    int o_flag = -1;
+    const char *outputFile;
+    const char *inputFile;
+    char *end;
+    int iter = 3;
+    while((opt = getopt(argc, argv, "o:d:i::h")) != -1) {
+        switch(opt) {
+        case 'h':
+            {
+                printhelp(0);
+                return 0;
+                break;
             }
-
-            const char* filename = "bar.bin";
-            SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
-            Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
-            root = sb_treeify(J, inp, ROWS, COLS);
-            smap_root = smap_treeify(root, J);
-            ezw(filename, smap_root, ROWS, COLS, 9);
-
-            Queue *header_q = NULL;
-            header_q = read_bitstream_file(filename, header_q);
-            // queue_pretty_print(header_q, MINI_HDR);
-            // smap_tree_print_preorder(smap_root, ALL);
-
-            // clean up
-            sb_tree_free(root);
-            wave_free(obj);
-            wt2_free(wt);
-            free(inp);
-            free(oup);
-            free(pix_arr);
-            free(inv_out);
-            fclose(coeff_bin);
+        case 'o':
+            {
+                outputFile = optarg;
+                o_flag = strtol(optarg, &end, 10);
+                break;
+            }
+        case 'd':
+            {
+                rows = strtol(optarg, &end, 10);
+                cols = rows;
+                break;
+            }
+        case 'i':
+            {
+                iter = strtol(optarg, &end, 10);
+                break;
+            }
+        case '?':
+            {
+                if(optopt != 'o' && optopt != 'd') {
+                    fprintf(stderr, "Unknown option -%c.\n\n", optopt);
+                    printhelp(1);
+                    return 1;
+                }
+                break;
+            }
         }
     }
 
-    if(return_error) {
+    if(o_flag == -1) {
+        fprintf(stderr, "-o is a mandatory option\n\n");
+        printhelp(1);
+        return 1;
+    }
+    if(rows == -1) {
+        fprintf(stderr, "-d is a mandatory option\n\n");
+        printhelp(1);
+        return 1;
+    }
+
+    if(optind < argc) {
+        inputFile = argv[optind];
+    }
+
+    FILE *img_bin = fopen(inputFile, "rb");
+    unsigned char *pix_arr = calloc(rows*cols, 1); // array of 8 bit vals
+
+    if(!img_bin) {
+        fprintf(stderr, "Unable to open file: %s\n", inputFile);
         return 1;
     }
     else {
-        return 0;
+        read_binary_file(img_bin, pix_arr, rows, cols);
+        fclose(img_bin);
     }
+
+    wave_object obj;
+    wt2_object wt;
+    double *inp, *oup, *inv_out;
+    int N = rows*cols;
+
+    char *name = "haar";
+    obj = wave_init(name);// Initialize the wavelet
+    inp = (double *) calloc(N, sizeof(double));
+    oup = (double *) calloc(N, sizeof(double));
+    inv_out = (double *) calloc(N, sizeof(double));
+
+    // number of decompositions = max possible for the given dimensions
+    int J = (int) log2(rows);
+
+    wt = wt2_init(obj, "dwt", rows, cols, J);
+
+    for (int i = 0; i < rows; ++i) {
+        for (int k = 0; k < cols; ++k) {
+            inp[i*cols + k] = (double) pix_arr[i*cols + k];
+            oup[i*cols + k] = 0.0;
+        }
+    }
+
+    SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
+    Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
+    root = sb_treeify(J, inp, rows, cols);
+    smap_root = smap_treeify(root, J);
+    ezw(outputFile, smap_root, rows, cols, iter);
+
+    Queue *header_q = NULL;
+    header_q = read_bitstream_file(outputFile, header_q);
+    // queue_pretty_print(header_q, MINI_HDR);
+    // smap_tree_print_preorder(smap_root, ALL);
+
+    // clean up
+    sb_tree_free(root);
+    wave_free(obj);
+    wt2_free(wt);
+    free(inp);
+    free(oup);
+    free(pix_arr);
+    free(inv_out);
     return 0;
 }
 #endif // WAVE

@@ -39,7 +39,7 @@ void write_bitstream_file(const char* filename, enum file_op_mode mode,
 {
     FILE *fptr = NULL;
     unsigned char dim_pow = log2(dim);
-    DEBUG_INT("num_bytes", m_hdr->num_bytes);
+    // DEBUG_INT("num_bytes", m_hdr->num_bytes);
     if(mode == A) {
         fptr = fopen(filename, "ab");
     }
@@ -59,7 +59,7 @@ void write_bitstream_file(const char* filename, enum file_op_mode mode,
         fprintf(stderr, "Error while writing file: %s", filename);
         exit(1);
     }
-    DEBUG_ARR_BYTE(m_hdr->bytes, m_hdr->num_bytes);
+    // DEBUG_ARR_BYTE(m_hdr->bytes, m_hdr->num_bytes);
     if(fwrite(m_hdr->bytes, sizeof(m_hdr->bytes[0]), m_hdr->num_bytes, fptr) != m_hdr->num_bytes) {
         fprintf(stderr, "Error while writing file: %s", filename);
         exit(1);

@@ -168,7 +168,7 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
     int i = 0;
     while(i < iter) {
         if(threshold > 0) {
-            BOLD_CYAN_FG("Iteration\n");
+            // BOLD_CYAN_FG("Iteration\n");
             dominant_list = dominant_pass(smap_root, threshold);
             // queue_pretty_print(dominant_list, SMAP_TREE_NODE);
 
@@ -183,7 +183,7 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
                 write_bitstream_file(filename, A, m_hdr, rows);
             }
             threshold /= 2;
-            BOLD_CYAN_FG("...\n\n");
+            // BOLD_CYAN_FG("...\n\n");
             free_queue(symbols);
             free(m_hdr);
         }
