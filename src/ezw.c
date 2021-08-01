@@ -155,7 +155,7 @@ Queue *subordinate_pass(Queue *dominant_list, int threshold)
     return bitstream_elements;
 }
 
-void ezw(Smap_tree_node *smap_root, unsigned char iter)
+void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned char iter)
 {
     // bitplane coding is adopted here
     // https://en.wikipedia.org/wiki/Bit_plane
@@ -165,24 +165,27 @@ void ezw(Smap_tree_node *smap_root, unsigned char iter)
     Queue *dominant_list = NULL;
     Queue *symbols = NULL;
     mini_header *m_hdr = NULL;
-
     int i = 0;
     while(i < iter) {
         if(threshold > 0) {
             BOLD_CYAN_FG("Iteration\n");
             dominant_list = dominant_pass(smap_root, threshold);
-            queue_pretty_print(dominant_list, SMAP_TREE_NODE);
+            // queue_pretty_print(dominant_list, SMAP_TREE_NODE);
+
             symbols = subordinate_pass(dominant_list, threshold);
-            queue_pretty_print(symbols, INT);
+            // queue_pretty_print(symbols, INT);
+
             m_hdr = create_mini_header(threshold, symbols);
             if(i == 0) {
-                write_bitstream_file("foo.bin", W, m_hdr, 8);
+                write_bitstream_file(filename, W, m_hdr, rows);
             }
             else {
-                write_bitstream_file("foo.bin", A, m_hdr, 8);
+                write_bitstream_file(filename, A, m_hdr, rows);
             }
             threshold /= 2;
             BOLD_CYAN_FG("...\n\n");
+            free_queue(symbols);
+            free(m_hdr);
         }
         else {
             break;
