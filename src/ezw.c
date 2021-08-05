@@ -168,7 +168,7 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
     int i = 0;
     while(i < iter) {
         if(threshold > 0) {
-            // BOLD_CYAN_FG("Iteration\n");
+            BOLD_CYAN_FG("Iteration\n");
             dominant_list = dominant_pass(smap_root, threshold);
             // queue_pretty_print(dominant_list, SMAP_TREE_NODE);
 
@@ -183,7 +183,7 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
                 write_bitstream_file(filename, A, m_hdr, rows);
             }
             threshold /= 2;
-            // BOLD_CYAN_FG("...\n\n");
+            BOLD_CYAN_FG("...\n\n");
             free_queue(symbols);
             free(m_hdr);
         }
@@ -194,3 +194,86 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
     }
 }
 
+Smap_tree_node* reconstruct(unsigned char dim_pow, Queue *header_q)
+{
+    // initialise empty trees for filling in with approximations
+    double *zeros = (double *) calloc(pow(2, dim_pow), sizeof(double));
+    SBtree_node *reconst_root = sb_treeify(dim_pow, zeros, pow(2, dim_pow), pow(2, dim_pow));
+    Smap_tree_node *smap_root = smap_treeify(reconst_root, dim_pow);
+
+    Smap_tree_node *curr_smap = NULL;
+    Queue *smap_q = NULL;
+    int curr_threshold = 0;
+    unsigned char lsb = 0;
+    if(header_q) {
+        while(header_q->head) {
+            Node *curr_hdr_node = dequeue(header_q);
+            mini_header *curr_hdr = (mini_header *) curr_hdr_node->data;
+            unsigned char curr_byte = 0;
+            unsigned char *symbols = calloc(2*curr_hdr->num_bytes, sizeof(unsigned char));
+            for(int i = 0; i < 2*curr_hdr->num_bytes; i++) {
+                curr_byte = curr_hdr->bytes[i/2];
+
+                // NOTE: extract from MSB half first
+                // eg: 0b11111001
+                // extracts 0b111 first, then 0b001, which is the order we want
+                symbols[i] = (((curr_byte << (i%2)*3) & SYMB_MASK) >> 3);
+            }
+
+            smap_q = enqueue(smap_q, smap_root);
+            curr_threshold = pow(2, curr_hdr->threshold_pow);
+            for(int i = 0; i < 2*curr_hdr->num_bytes; i++) {
+                Node *curr_smap_node = dequeue(smap_q);
+                curr_smap = (Smap_tree_node *) curr_smap_node->data;
+                for(int i = 0; i < 4; i++) {
+                    if(curr_smap->children[i]) {
+                        smap_q = enqueue(smap_q, curr_smap->children[i]);
+                    }
+                }
+                if(!curr_smap->not_available) {
+                    lsb = symbols[i] & 1;
+                    symbols[i] >>= 1;
+                    switch(symbols[i]) {
+                        case SP:
+                            {
+                                if(lsb) {
+                                    curr_smap->coeff = 1.5*curr_threshold;
+                                }
+                                else {
+                                    curr_smap->coeff = curr_threshold;
+                                }
+                                curr_smap->not_available = 1;
+                                break;
+                            }
+                        case SN:
+                            {
+                                if(lsb) {
+                                    curr_smap->coeff = -1.5*curr_threshold;
+                                }
+                                else {
+                                    curr_smap->coeff = -curr_threshold;
+                                }
+                                curr_smap->not_available = 1;
+                                break;
+                            }
+                        default:
+                            {
+                                curr_smap->coeff = 0.0;
+                                curr_smap->not_available = 1;
+                                break;
+                            }
+                    }
+                }
+            }
+            // DEBUG_ARR_BYTE(symbols, 2*curr_hdr->num_bytes);
+            // smap_tree_print_preorder(smap_root, ALL);
+            // printf("\n");
+            free(symbols);
+            free(smap_q);
+            smap_q = NULL;
+        }
+    }
+    free(zeros);
+    sb_tree_free(reconst_root);
+    return smap_root;
+}

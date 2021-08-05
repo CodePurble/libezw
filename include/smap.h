@@ -30,6 +30,7 @@ typedef struct Smap_tree_node {
 
 char* smap_symbol_to_str(enum smap_symbol s);
 
+void smap_tree_print_levelorder(Smap_tree_node *root, enum print_conf p);
 void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p);
 Smap_tree_node *smap_tree_init_node(double coeff);
 Smap_tree_node *smap_tree_init_root(double val,

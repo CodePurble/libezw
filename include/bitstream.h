@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include "queue.h"
 
+// 0b00111000
+#define SYMB_MASK 0x38
+
 typedef struct {
     unsigned short threshold_pow;
     unsigned int num_bytes;

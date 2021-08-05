@@ -3,16 +3,16 @@
 #include "utils.h"
 #include "bitstream.h"
 
-#define SYMB_MASK 0x07
-
-
 mini_header *create_mini_header(unsigned int threshold, Queue *symbols)
 {
     mini_header *m_hdr = malloc(sizeof(mini_header));
     m_hdr->num_bytes = (unsigned int) (symbols->len / 2) + (symbols->len % 2);
     unsigned char curr_byte = 0xff;
     unsigned char *bytes = (unsigned char *) calloc(m_hdr->num_bytes, sizeof(unsigned char));
+
+    // NOTE: Do we really need this??
     Node *node_pair[2] = {NULL};
+
     m_hdr->threshold_pow = (unsigned short) log2(threshold);
     unsigned int ind = 0;
     while(symbols->head) {

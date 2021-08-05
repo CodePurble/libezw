@@ -141,6 +141,31 @@ Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
     return smap_root;
 }
 
+void smap_tree_print_levelorder(Smap_tree_node *root, enum print_conf p) {
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        switch(p) {
+            case COEFF:
+                printf("%f\n", curr_smap->coeff);
+                break;
+            case TYPE:
+                printf("%s\n", smap_symbol_to_str(curr_smap->type));
+                break;
+            case ALL:
+                printf("(%f, %s)\n", curr_smap->coeff, smap_symbol_to_str(curr_smap->type));
+                break;
+        }
+    }
+}
+
 void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p)
 {
     if(root) {

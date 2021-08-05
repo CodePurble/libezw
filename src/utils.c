@@ -3,14 +3,14 @@
 
 void read_binary_file(FILE *infile, unsigned char *dest_arr, int rows, int cols)
 {
-    printf("Reading binary file...\n");
     fread(dest_arr, 1, rows*cols, infile);
+    printf("Read binary file...\n");
 }
 
 void write_binary_file(FILE *outfile, unsigned char *src_arr, int rows, int cols)
 {
-    printf("Writing binary file...\n");
     fwrite(src_arr, 1, rows*cols, outfile);
+    printf("Wrote binary file...\n");
 }
 
 void double_to_uchar(double *src, unsigned char* dest, int rows, int cols)
