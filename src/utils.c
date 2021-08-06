@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include "utils.h"
 
 void read_binary_file(FILE *infile, unsigned char *dest_arr, int rows, int cols)
@@ -101,4 +102,49 @@ double* smap2arr(Smap_tree_node* smap_root, int rows, int cols)
     }
     free_queue(q);
     return arr;
+}
+double* gsl_swap(double *unswapped, int rows, int cols)
+{
+    double* swapped = (double *)calloc(rows*cols, sizeof(double));
+    int *level_collection = (int *)calloc(rows, sizeof(int));
+
+    for(int i = 0; i < rows; i++)
+    {
+        level_collection[i] = 1 + (int)log2(rows/(i+1));
+    }
+
+    level_collection[0] = log2(rows/(1));
+    level_collection[1] = level_collection[0];
+
+    int ratio, temp_ratio;
+    
+    for(int i = 0; i < rows; i++)
+    {
+        ratio = (rows/pow(2, level_collection[i]));
+        temp_ratio = ratio;
+        for(int j = 0; j < cols; j++)
+        {
+            if(i == 0 || i == 1)
+            {
+                swapped[i*cols + j] = unswapped[(i + ratio)*cols + (j - ratio)];
+            }
+            else 
+            {
+                if(ratio)
+                {
+                    swapped[i*cols + j] = unswapped[(i + ratio)*cols + (j - ratio)];
+                    ratio--;
+                }
+                else if(temp_ratio)
+                {
+                    swapped[i*cols + j] = unswapped[i*cols + j];
+                    temp_ratio--;
+                }
+                else
+                {
+                    swapped[i*cols + j] = unswapped[(i + ratio)*cols + (j - ratio)];
+                }
+            }
+        }
+    }
 }
