@@ -198,7 +198,7 @@ void sb_tree_free(SBtree_node *root)
 void sb_tree_print_preorder(SBtree_node *root)
 {
     if(root && root->coeffs) {
-        printf("%f | ", root->coeffs[0]);
+        printf("%f\n", root->coeffs[0]);
     }
     if(root->ll) {
         sb_tree_print_preorder(root->ll);

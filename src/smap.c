@@ -4,148 +4,231 @@
 #include "smap.h"
 #include "utils.h"
 
-Smap_tree_node* smap_tree_init_node(double coeff)
+Smap_tree_node *smap_tree_init_node(double coeff)
 {
     Smap_tree_node *new_node = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
     new_node->coeff = coeff;
     new_node->type = U;
-    new_node->c1 = NULL;
-    new_node->c2 = NULL;
-    new_node->c3 = NULL;
-    new_node->c4 = NULL;
+    new_node->parent = NULL;
+    new_node->children[0] = NULL;
+    new_node->children[1] = NULL;
+    new_node->children[2] = NULL;
+    new_node->children[3] = NULL;
     new_node->isroot = 0;
+    new_node->not_available = 0;
     return new_node;
 }
 
-Smap_tree_node* smap_tree_init_root(
-        double val,
-        double c2val,
-        double c3val,
-        double c4val
-        )
+Smap_tree_node *smap_tree_init_root(double val,
+                                    double c1val,
+                                    double c2val,
+                                    double c3val)
 {
     Smap_tree_node *new_node = smap_tree_init_node(val);
+    Smap_tree_node *c2 = smap_tree_init_node(c1val);
+    Smap_tree_node *c3 = smap_tree_init_node(c2val);
+    Smap_tree_node *c4 = smap_tree_init_node(c3val);
+    new_node->parent = NULL;
+    new_node->children[1] = c2;
+    new_node->children[2] = c3;
+    new_node->children[3] = c4;
+    for(int i = 1; i < 4; i++) {
+        new_node->children[i]->parent = new_node;
+    }
     new_node->isroot = 1;
-    Smap_tree_node *c2 = smap_tree_init_node(c2val);
-    Smap_tree_node *c3 = smap_tree_init_node(c3val);
-    Smap_tree_node *c4 = smap_tree_init_node(c4val);
-    new_node->c2 = c2;
-    new_node->c3 = c3;
-    new_node->c4 = c4;
     return new_node;
 }
 
-Smap_tree_node* smap_tree_insert_quad(
-        Smap_tree_node *root,
-        double *cvals,
-        int child_level,
-        int parent_t
-        )
+// Recursively "reset" all node types to U
+Smap_tree_node* smap_tree_reset(Smap_tree_node *root)
 {
-    Smap_tree_node *curr = root;
-    Smap_tree_node *c1 = smap_tree_init_node(cvals[0]);
-    Smap_tree_node *c2 = smap_tree_init_node(cvals[1]);
-    Smap_tree_node *c3 = smap_tree_init_node(cvals[2]);
-    Smap_tree_node *c4 = smap_tree_init_node(cvals[3]);
-    // Move into the level just above one where you want to insert
-    switch(parent_t) {
-        case 1:
-            for(int i = 1; i < child_level; i++) {
-                curr = curr->c1;
-            }
-            break;
-        case 2:
-            for(int i = 1; i < child_level; i++) {
-                curr = curr->c2;
-            }
-            break;
-        case 3:
-            for(int i = 1; i < child_level; i++) {
-                curr = curr->c3;
-            }
-            break;
-        case 4:
-            for(int i = 1; i < child_level; i++) {
-                curr = curr->c4;
-            }
-            break;
+    if(root) {
+        root->type = U;
     }
-    curr->c1 = c1;
-    curr->c2 = c2;
-    curr->c3 = c3;
-    curr->c4 = c4;
+    if(root->children[0]) {
+        smap_tree_reset(root->children[0]);
+    }
+    if(root->children[1]) {
+        smap_tree_reset(root->children[1]);
+    }
+    if(root->children[2]) {
+        smap_tree_reset(root->children[2]);
+    }
+    if(root->children[3]) {
+        smap_tree_reset(root->children[3]);
+    }
     return root;
 }
 
-Smap_tree_node *smap_treeify(
-        SBtree_node *sb_root,
-        int levels,
-        int rows,
-        int cols
-        )
+/**
+ * Assume the first 4 Smap_tree_nodes are already in the queue
+ * So the nodes given here:
+ *        a
+ *        |
+ *   -----------
+ *  /     |     \
+ *  b     c     d
+ *  should already be in the queue
+ *  Maintain an external queue
+ *  'a' need not be in the queue as it is the first to be enqueued
+ *  so, the intial queue must be like this:
+ *  [b, c, d]
+ *
+ *  Breadth first insertion:
+ *  1) Dequeued value is inserted into the Smap_tree
+ *  2) The newly added nodes are enqueued
+ *
+ *  New quads are inserted as children to the head of the queue, which is
+ *  then dequeued. The newly inserted nodes are enqueued in order.
+**/
+Queue *smap_tree_insert_quad(Queue *q, double *cvals)
 {
-    if(levels == (int) log2(rows)) {
-        Smap_tree_node *smap_root = smap_tree_init_root(
-            sb_root->ll->coeffs[0],
-            sb_root->hl->coeffs[0],
-            sb_root->lh->coeffs[0],
-            sb_root->hh->coeffs[0]
-            );
-        double *curr_coeffs[3] = {NULL};
-        int dim = 2;
-        double **quads = (double **) calloc(sizeof(double *), (dim*dim)/4);
+    int start = 0;
+    Node *head = dequeue(q);
+    Smap_tree_node *curr = (Smap_tree_node *) head->data;
+    // DEBUG_DOUBLE("inserting quad at", curr->coeff);
+    // DEBUG_ARR_F_1(cvals, 4);
+    // DEBUG_BLANK;
+    if(curr->isroot) {
+        start = 1;
+    }
+    for(int i = start; i < 4; i++) {
+        curr->children[i] = smap_tree_init_node(cvals[i]);
+        curr->children[i]->parent = curr;
+        q = enqueue(q, curr->children[i]);
+    }
+    // queue_pretty_print(q);
+    // printf("\n");
+    return q;
+}
 
-        // Second level is inserted manually because there are only 3 children.
-        // Everything else will have 4
-        curr_coeffs[0] = sb_tree_get_coeff(sb_root, HL, dim);
-        curr_coeffs[1] = sb_tree_get_coeff(sb_root, LH, dim);
-        curr_coeffs[2] = sb_tree_get_coeff(sb_root, HH, dim);
+Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
+{
+    Queue *q = NULL;
+    Smap_tree_node *smap_root = smap_tree_init_root(sb_root->ll->coeffs[0],
+                                                    sb_root->hl->coeffs[0],
+                                                    sb_root->lh->coeffs[0],
+                                                    sb_root->hh->coeffs[0]);
 
-        quads = quads_from_arr(curr_coeffs[0], dim, dim);
-        smap_root = smap_tree_insert_quad(smap_root, quads[0], dim, 2);
+    // First level, enqueue the 3 valid children
+    for(int i = 1; i < 4; i++) {
+        q = enqueue(q, smap_root->children[i]);
+    }
 
-        quads = quads_from_arr(curr_coeffs[1], dim, dim);
-        smap_root = smap_tree_insert_quad(smap_root, quads[0], dim, 3);
+    // Coeffs of all subbands in current level
+    double *curr_coeffs[3] = {NULL};
+    int dim;
+    int num_quads = 0;
+    // Rest of the levels
+    for(int i = 2; i <= levels; i++) {
+        dim = pow(2, i-1);
+        num_quads = (dim*dim)/4;
+        double **quads = (double **) calloc(sizeof(double *), num_quads);
 
-        quads = quads_from_arr(curr_coeffs[2], dim, dim);
-        smap_root = smap_tree_insert_quad(smap_root, quads[0], dim, 4);
+        curr_coeffs[0] = sb_tree_get_coeff(sb_root, HL, i);
+        curr_coeffs[1] = sb_tree_get_coeff(sb_root, LH, i);
+        curr_coeffs[2] = sb_tree_get_coeff(sb_root, HH, i);
 
-        // Rest of the levels
-        for(int i = 3; i <= levels; i++) {
-            dim = pow(2, i-1);
-            curr_coeffs[0] = sb_tree_get_coeff(sb_root, HL, i);
-            curr_coeffs[1] = sb_tree_get_coeff(sb_root, LH, i);
-            curr_coeffs[2] = sb_tree_get_coeff(sb_root, HH, i);
-
-            quads = quads_from_arr(curr_coeffs[0], dim, dim);
-            /* DEBUG_ARR_F_2(quads, (dim*dim)/4, 4); */
-            for(int j = 0; j < dim; j++) {
-                DEBUG_INT("j", j);
-                smap_root = smap_tree_insert_quad(smap_root, quads[i], i-1, j+1);
+        for(int k = 0; k < 3; k++) {
+            quads = quads_from_arr(curr_coeffs[k], dim, dim);
+            for(int j = 0; j < num_quads; j++) {
+                q = smap_tree_insert_quad(q, quads[j]);
             }
         }
-        return smap_root;
+        free(quads);
     }
-    else {
-        return NULL;
+    free(q);
+    return smap_root;
+}
+
+void smap_tree_print_levelorder(Smap_tree_node *root, enum print_conf p) {
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        switch(p) {
+            case COEFF:
+                printf("%f\n", curr_smap->coeff);
+                break;
+            case TYPE:
+                printf("%s\n", smap_symbol_to_str(curr_smap->type));
+                break;
+            case ALL:
+                printf("(%f, %s)\n", curr_smap->coeff, smap_symbol_to_str(curr_smap->type));
+                break;
+        }
     }
 }
 
-void smap_tree_print_preorder(Smap_tree_node *root)
+double *smap2levelorder(Smap_tree_node *root, int rows, int cols)
+{
+    double *arr = (double *) calloc(rows*cols, sizeof(double));
+    int i = 0;
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        arr[i] = curr_smap->coeff;
+        i++;
+    }
+    return arr;
+}
+
+void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p)
 {
     if(root) {
-        printf("%f | ", root->coeff);
+        switch(p) {
+            case COEFF:
+                printf("%f\n", root->coeff);
+                break;
+            case TYPE:
+                printf("%s\n", smap_symbol_to_str(root->type));
+                break;
+            case ALL:
+                printf("(%f, %s)\n", root->coeff, smap_symbol_to_str(root->type));
+                break;
+        }
     }
-    if(root->c1) {
-        smap_tree_print_preorder(root->c1);
+    if(root->children[0]) {
+        smap_tree_print_preorder(root->children[0], p);
     }
-    if(root->c2) {
-        smap_tree_print_preorder(root->c2);
+    if(root->children[1]) {
+        smap_tree_print_preorder(root->children[1], p);
     }
-    if(root->c3) {
-        smap_tree_print_preorder(root->c3);
+    if(root->children[2]) {
+        smap_tree_print_preorder(root->children[2], p);
     }
-    if(root->c4) {
-        smap_tree_print_preorder(root->c4);
+    if(root->children[3]) {
+        smap_tree_print_preorder(root->children[3], p);
+    }
+}
+
+char* smap_symbol_to_str(enum smap_symbol s)
+{
+    switch(s) {
+        case SP:
+            return "SP";
+        case SN:
+            return "SN";
+        case IZ:
+            return "IZ";
+        case ZR:
+            return "ZR";
+        case U:
+            return "U";
+        default:
+            return "";
     }
 }
