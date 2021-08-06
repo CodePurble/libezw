@@ -1,6 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
-#include<stdio.h>
+#include <stdio.h>
 #include "smap.h"
 
 static inline void BOLD_CYAN_FG(char *str)
@@ -58,6 +58,13 @@ static inline void DEBUG_ARR_F_2(double **x, int r, int c) {
     }
 }
 
+static inline void DEBUG_ARR_INT(int *x, int r) {
+    BOLD_CYAN_FG("[debug_arr_int] ");
+    for(int i = 0; i < r; i++) {
+        printf("%d ", x[i]);
+    }
+}
+
 static inline void DEBUG_SMAP_NODE(Smap_tree_node *n) {
     if(n) {
         DEBUG_DOUBLE("coeff", n->coeff);
@@ -74,6 +81,7 @@ void write_binary_file(FILE *outfile, unsigned char *src_arr, int rows, int cols
 void double_to_uchar(double *src, unsigned char* dest, int rows, int cols);
 double max_double(double *arr, int len);
 double** quads_from_arr(double *arr, int rows, int cols);
+double* gsl_swap(double *unswapped, int rows, int cols);
 
 double* smap2arr(Smap_tree_node* smap_root, int rows, int cols);
 unsigned int* morton_decode(unsigned int morton, unsigned int *inds);
