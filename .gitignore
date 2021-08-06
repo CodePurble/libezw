@@ -5,6 +5,8 @@
 # gdb
 .gdb_history
 
+*.ezw
+perf/
 build/
 compile_commands.json
 

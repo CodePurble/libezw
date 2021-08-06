@@ -9,11 +9,13 @@ Smap_tree_node *smap_tree_init_node(double coeff)
     Smap_tree_node *new_node = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
     new_node->coeff = coeff;
     new_node->type = U;
+    new_node->parent = NULL;
     new_node->children[0] = NULL;
     new_node->children[1] = NULL;
     new_node->children[2] = NULL;
     new_node->children[3] = NULL;
     new_node->isroot = 0;
+    new_node->not_available = 0;
     return new_node;
 }
 
@@ -26,11 +28,36 @@ Smap_tree_node *smap_tree_init_root(double val,
     Smap_tree_node *c2 = smap_tree_init_node(c1val);
     Smap_tree_node *c3 = smap_tree_init_node(c2val);
     Smap_tree_node *c4 = smap_tree_init_node(c3val);
+    new_node->parent = NULL;
     new_node->children[1] = c2;
     new_node->children[2] = c3;
     new_node->children[3] = c4;
+    for(int i = 1; i < 4; i++) {
+        new_node->children[i]->parent = new_node;
+    }
     new_node->isroot = 1;
     return new_node;
+}
+
+// Recursively "reset" all node types to U
+Smap_tree_node* smap_tree_reset(Smap_tree_node *root)
+{
+    if(root) {
+        root->type = U;
+    }
+    if(root->children[0]) {
+        smap_tree_reset(root->children[0]);
+    }
+    if(root->children[1]) {
+        smap_tree_reset(root->children[1]);
+    }
+    if(root->children[2]) {
+        smap_tree_reset(root->children[2]);
+    }
+    if(root->children[3]) {
+        smap_tree_reset(root->children[3]);
+    }
+    return root;
 }
 
 /**
@@ -67,6 +94,7 @@ Queue *smap_tree_insert_quad(Queue *q, double *cvals)
     }
     for(int i = start; i < 4; i++) {
         curr->children[i] = smap_tree_init_node(cvals[i]);
+        curr->children[i]->parent = curr;
         q = enqueue(q, curr->children[i]);
     }
     // queue_pretty_print(q);
@@ -101,23 +129,61 @@ Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
         curr_coeffs[1] = sb_tree_get_coeff(sb_root, LH, i);
         curr_coeffs[2] = sb_tree_get_coeff(sb_root, HH, i);
 
-        quads = quads_from_arr(curr_coeffs[0], dim, dim);
-        for(int j = 0; j < num_quads; j++) {
-            q = smap_tree_insert_quad(q, quads[j]);
+        for(int k = 0; k < 3; k++) {
+            quads = quads_from_arr(curr_coeffs[k], dim, dim);
+            for(int j = 0; j < num_quads; j++) {
+                q = smap_tree_insert_quad(q, quads[j]);
+            }
         }
-        quads = quads_from_arr(curr_coeffs[1], dim, dim);
-        for(int j = 0; j < num_quads; j++) {
-            q = smap_tree_insert_quad(q, quads[j]);
-        }
-        quads = quads_from_arr(curr_coeffs[2], dim, dim);
-        for(int j = 0; j < num_quads; j++) {
-            q = smap_tree_insert_quad(q, quads[j]);
-        }
-
         free(quads);
     }
     free(q);
     return smap_root;
+}
+
+void smap_tree_print_levelorder(Smap_tree_node *root, enum print_conf p) {
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        switch(p) {
+            case COEFF:
+                printf("%f\n", curr_smap->coeff);
+                break;
+            case TYPE:
+                printf("%s\n", smap_symbol_to_str(curr_smap->type));
+                break;
+            case ALL:
+                printf("(%f, %s)\n", curr_smap->coeff, smap_symbol_to_str(curr_smap->type));
+                break;
+        }
+    }
+}
+
+double *smap2levelorder(Smap_tree_node *root, int rows, int cols)
+{
+    double *arr = (double *) calloc(rows*cols, sizeof(double));
+    int i = 0;
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        arr[i] = curr_smap->coeff;
+        i++;
+    }
+    return arr;
 }
 
 void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p)
@@ -130,7 +196,7 @@ void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p)
             case TYPE:
                 printf("%s\n", smap_symbol_to_str(root->type));
                 break;
-            case FULL:
+            case ALL:
                 printf("(%f, %s)\n", root->coeff, smap_symbol_to_str(root->type));
                 break;
         }
@@ -162,5 +228,7 @@ char* smap_symbol_to_str(enum smap_symbol s)
             return "ZR";
         case U:
             return "U";
+        default:
+            return "";
     }
 }

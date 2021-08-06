@@ -18,6 +18,8 @@ typedef struct SBtree_node {
     enum sb_type type;
 } SBtree_node;
 
+// OPTIMIZE: Maybe pass by reference? Soo many copies!!
+
 SBtree_node* sb_tree_init_root();
 SBtree_node* sb_tree_insert(SBtree_node *root, enum sb_type t, double *coeffs);
 SBtree_node* sb_treeify(int levels, double *input, int rows, int cols);

@@ -3,13 +3,14 @@
 #include "queue.h"
 #include "node.h"
 #include "smap.h"
+#include "bitstream.h"
 #include "utils.h"
 
 Queue *enqueue(Queue *q, void *data)
 {
     // If no queue
     if(!q) {
-        q = malloc(sizeof(Queue));
+        q = (Queue *) malloc(sizeof(Queue));
         q->head = NULL;
         q->tail = NULL;
     }
@@ -27,6 +28,7 @@ Queue *enqueue(Queue *q, void *data)
         q->tail->next = new_node;
         q->tail = new_node;
     }
+    q->len++;
     return q;
 }
 
@@ -44,6 +46,7 @@ Node *dequeue(Queue *q)
             // move head to next in queue
             q->head = q->head->next;
         }
+        q->len--;
     }
     return node;
 }
@@ -56,15 +59,54 @@ void free_queue(Queue *q)
     free(q);
 }
 
-// only for testing, will segfault otherwise
-void queue_pretty_print(Queue *q)
+void queue_pretty_print(Queue *q, enum q_type t)
 {
-    Node *curr = q->head;
-    Smap_tree_node *curr_smap_node = NULL;
-    while(curr) {
-        curr_smap_node = (Smap_tree_node *) curr->data;
-        printf("%f ", curr_smap_node->coeff);
-        curr = curr->next;
+    if(q) {
+        Node *curr = q->head;
+        switch(t) {
+            case SMAP_TREE_NODE: {
+                Smap_tree_node *curr_smap_node = NULL;
+                while(curr) {
+                    curr_smap_node = (Smap_tree_node *) curr->data;
+                    printf("(%f %s) ", curr_smap_node->coeff,
+                            smap_symbol_to_str(curr_smap_node->type));
+                    curr = curr->next;
+                }
+                break;
+            }
+            case MINI_HDR: {
+                mini_header *curr_hdr = NULL;
+                while(curr) {
+                    curr_hdr = (mini_header *) curr->data;
+                    printf("(%d %d)\n", curr_hdr->threshold_pow, curr_hdr->num_bytes);
+                    DEBUG_ARR_BYTE(curr_hdr->bytes, curr_hdr->num_bytes);
+                    printf("\n");
+                    curr = curr->next;
+                }
+                break;
+            }
+            case INT: {
+                int *val = NULL;
+                while(curr) {
+                    val = (int *) curr->data;
+                    printf("%d ", *val);
+                    curr = curr->next;
+                }
+                break;
+            }
+            case DOUBLE: {
+                double *val = NULL;
+                while(curr) {
+                    val = (double *) curr->data;
+                    printf("%f ", *val);
+                    curr = curr->next;
+                }
+                break;
+            }
+        }
+            printf("\n");
     }
-    printf("\n");
+    else {
+        printf("Queue is empty\n");
+    }
 }
