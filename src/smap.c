@@ -166,6 +166,26 @@ void smap_tree_print_levelorder(Smap_tree_node *root, enum print_conf p) {
     }
 }
 
+double *smap2levelorder(Smap_tree_node *root, int rows, int cols)
+{
+    double *arr = (double *) calloc(rows*cols, sizeof(double));
+    int i = 0;
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        arr[i] = curr_smap->coeff;
+        i++;
+    }
+    return arr;
+}
+
 void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p)
 {
     if(root) {

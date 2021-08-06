@@ -26,6 +26,12 @@ static inline void DEBUG_STR(char *str, char *x)
     printf("%s:%s\n", str, x);
 }
 
+static inline void DEBUG_UINT_PAIR(char *str, unsigned int *x)
+{
+    BOLD_CYAN_FG("[debug_uint_pair] ");
+    printf("%s:(%u %u)\n", str, x[0], x[1]);
+}
+
 static inline void DEBUG_ARR_BYTE(unsigned char *x, int len) {
     BOLD_CYAN_FG("[debug_arr_byte] ");
     for(int i = 0; i < len; i++) {
@@ -68,5 +74,8 @@ void write_binary_file(FILE *outfile, unsigned char *src_arr, int rows, int cols
 void double_to_uchar(double *src, unsigned char* dest, int rows, int cols);
 double max_double(double *arr, int len);
 double** quads_from_arr(double *arr, int rows, int cols);
+
+double* smap2arr(Smap_tree_node* smap_root, int rows, int cols);
+unsigned int* morton_decode(unsigned int morton, unsigned int *inds);
 
 #endif // UTILS_H

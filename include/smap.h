@@ -41,4 +41,5 @@ Smap_tree_node *smap_tree_init_root(double val,
 Queue *smap_tree_insert_quad(Queue *q, double *cvals);
 Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels);
 Smap_tree_node* smap_tree_reset(Smap_tree_node *root);
+double *smap2levelorder(Smap_tree_node *root, int rows, int cols);
 #endif // SMAP_H

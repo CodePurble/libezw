@@ -57,3 +57,48 @@ double** quads_from_arr(double *arr, int rows, int cols)
     }
     return quads;
 }
+
+// NOTE: decompose row and col of current element from Morton scan (level order) output
+// NOTE: by "un-interleaving" the bits of the Morton index
+// https://en.wikipedia.org/wiki/Z-order_curve
+unsigned int* morton_decode(unsigned int morton, unsigned int *inds)
+{
+    const unsigned int EVEN_MASK = 2;
+    const unsigned int ODD_MASK = 1;
+    unsigned int row_bit = 0;
+    unsigned int col_bit = 0;
+    inds[0] = inds[1] = 0;
+    for(int i = 0; i < sizeof(morton)*4; i++) {
+        row_bit = (morton & EVEN_MASK) >> 1;
+        col_bit = morton & ODD_MASK;
+        row_bit <<= i;
+        col_bit <<= i;
+        inds[0] |= row_bit;
+        inds[1] |= col_bit;
+        morton >>= 2;
+    }
+    return inds;
+}
+
+double* smap2arr(Smap_tree_node* smap_root, int rows, int cols)
+{
+    double *arr = (double *) calloc(rows*cols, sizeof(double));
+    unsigned int *inds = calloc(2, sizeof(unsigned int));
+    unsigned int i = 0;
+    Queue *q = NULL;
+    q = enqueue(q, smap_root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int j = 0; j < 4; j++) {
+            if(curr_smap->children[j]) {
+                q = enqueue(q, curr_smap->children[j]);
+            }
+        }
+        inds = morton_decode(i, inds);
+        arr[inds[0]*cols + inds[1]] = curr_smap->coeff;
+        i++;
+    }
+    free_queue(q);
+    return arr;
+}

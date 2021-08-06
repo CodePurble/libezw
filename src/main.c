@@ -12,9 +12,18 @@
 
 // #define L
 
-/* #define STACKTEST */
+// #define MORTONTEST
 
-#if defined(STACKTEST)
+#if defined(MORTONTEST)
+int main() {
+    unsigned int *inds = (unsigned int *) calloc(2, sizeof(unsigned int));
+    for(int i = 0; i < 4; i++) {
+        inds = morton_decode(i, inds);
+        DEBUG_UINT_PAIR("inds", inds);
+    }
+    return 0;
+}
+#elif defined(STACKTEST)
 #include "stack.h"
 int main()
 {
@@ -242,9 +251,16 @@ int main(int argc, char **argv)
     header_q = read_bitstream_file(outputFile, header_q, &dim_pow);
     // queue_pretty_print(header_q, MINI_HDR);
     smap_root_approx = reconstruct(dim_pow, header_q);
-    smap_tree_print_levelorder(smap_root, ALL);
-    printf("\n");
-    smap_tree_print_levelorder(smap_root_approx, ALL);
+    double *arr = smap2arr(smap_root_approx, rows, cols);
+    for(int i = 0; i < rows; i++) {
+        for(int j = 0; j < cols; j++) {
+            printf("%.2f ", arr[i*cols + j]);
+        }
+        printf("\n");
+    }
+    // smap_tree_print_levelorder(smap_root, ALL);
+    // printf("\n");
+    // smap_tree_print_levelorder(smap_root_approx, ALL);
 
     // clean up
     sb_tree_free(root);
