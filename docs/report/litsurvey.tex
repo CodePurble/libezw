@@ -1,0 +1,58 @@
+\documentclass[./A14_Report.tex]{subfiles}
+
+\begin{document}
+\chapter{Literature Survey}
+The EZW algorithm generates a transformed and compressed bit-stream (embedded
+coding) which is just enough to distinguish the compressed image with a null
+image \cite{shap1993}. It ensures that the "important" bits are embedded at the
+beginning of bit-stream i.e. low-frequency sub-bands contain the bulk of the
+information. The sole purpose of this technique is to provide a reasonable
+amount of image information for recovery after compression, at lower magnitudes
+of bit-budget.
+
+\par
+
+EZW accomplishes this task by applying the \textit{Discrete Wavelet Transform}
+on the individual rows and column of the digital image and in turn, dividing
+the samples into various frequency sub-bands (LL, HL, LH, HH) in a hierarchical
+manner. The transform on the image outputs the decorrelated wavelet
+coefficients (i.e. there exists no dependencies between the samples of image)
+which is the input for the EZW algorithm.
+
+\par
+
+In an abstract view, the EZW algorithm (a multi-pass algorithm) takes the
+transformed image coefficients and compares it with a threshold value. The
+binary decision taken here, at every pass, entitles the coefficient as either
+\textit{significant} or \textit{insignificant} which expectantly gives rise to
+the \textit{nascent zero-tree}. The threshold value is readjusted at every pass
+to improve the quality of the compressed image. The algorithm also makes use of
+(lossy) entropy-encoded successive approximation quantization to eliminate the
+psycho-visual redundancies present in the image and regularizes the pixels
+present to an extent. Further lossless data compression is achieved by the
+adaptive arithmetic coding (uses precision available within an interval of
+numbers rather than multiple numbers themselves) at the encoder.
+
+\par
+
+The EZW algorithm has an upper hand over compression techniques like Discrete
+Cosine Transform (employed in JPEG algorithm where no prioritization of
+coefficients exists). It also has its limitations however, for example, it
+presumes that only the LL sub-band is split iteratively and it is also
+incapable of exploiting the redundancy present in the neighbourhood
+coefficients.
+
+The \textit{Set Paritioning in Hierarchial Trees} (SPIHT) is a revised version
+of the EZW algorithm. It is much more efficient due to the fact that it
+exploits the inherent similarities across the sub-bands in a wavelet
+decomposition of an image. \cite{sayood_datac}
+
+\par
+
+Also, the EZW allows truncation of bits in the case of bit-budget exhaustion
+but at points close to the truncation, some information is lost. This problem
+is addressed by the \textit{Embedded Block Coding with Optimized Truncation} of
+the embedded bit-stream (EBCOT) which specifies certain points at which
+truncation can be performed to avoid loss of information. The famous
+\textit{JPEG-2000} uses the EBCOT in it's image compression algorithm. \cite{sayood_datac}
+\end{document}
