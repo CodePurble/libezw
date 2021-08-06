@@ -3,6 +3,7 @@
 #include "queue.h"
 #include "node.h"
 #include "smap.h"
+#include "bitstream.h"
 #include "utils.h"
 
 Queue *enqueue(Queue *q, void *data)
@@ -69,6 +70,17 @@ void queue_pretty_print(Queue *q, enum q_type t)
                     curr_smap_node = (Smap_tree_node *) curr->data;
                     printf("(%f %s) ", curr_smap_node->coeff,
                             smap_symbol_to_str(curr_smap_node->type));
+                    curr = curr->next;
+                }
+                break;
+            }
+            case MINI_HDR: {
+                mini_header *curr_hdr = NULL;
+                while(curr) {
+                    curr_hdr = (mini_header *) curr->data;
+                    printf("(%d %d)\n", curr_hdr->threshold_pow, curr_hdr->num_bytes);
+                    DEBUG_ARR_BYTE(curr_hdr->bytes, curr_hdr->num_bytes);
+                    printf("\n");
                     curr = curr->next;
                 }
                 break;

@@ -23,4 +23,5 @@ add_executable(main
     )
 
 target_link_libraries(main PUBLIC wavelib m) # "m" to link math.h
+# target_link_libraries(main PUBLIC wavelib gsl gslcblas m) # "m" to link math.h
 

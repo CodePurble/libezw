@@ -26,8 +26,11 @@ typedef struct Smap_tree_node {
     unsigned char not_available;
 } Smap_tree_node;
 
+// OPTIMIZE: Maybe pass by reference? Soo many copies!!
+
 char* smap_symbol_to_str(enum smap_symbol s);
 
+void smap_tree_print_levelorder(Smap_tree_node *root, enum print_conf p);
 void smap_tree_print_preorder(Smap_tree_node *root, enum print_conf p);
 Smap_tree_node *smap_tree_init_node(double coeff);
 Smap_tree_node *smap_tree_init_root(double val,
@@ -38,4 +41,5 @@ Smap_tree_node *smap_tree_init_root(double val,
 Queue *smap_tree_insert_quad(Queue *q, double *cvals);
 Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels);
 Smap_tree_node* smap_tree_reset(Smap_tree_node *root);
+double *smap2levelorder(Smap_tree_node *root, int rows, int cols);
 #endif // SMAP_H
