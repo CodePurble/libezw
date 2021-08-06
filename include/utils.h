@@ -58,6 +58,13 @@ static inline void DEBUG_ARR_F_2(double **x, int r, int c) {
     }
 }
 
+static inline void DEBUG_ARR_INT(int *x, int r) {
+    BOLD_CYAN_FG("[debug_arr_int] ");
+    for(int i = 0; i < r; i++) {
+        printf("%d ", x[i]);
+    }
+}
+
 static inline void DEBUG_SMAP_NODE(Smap_tree_node *n) {
     if(n) {
         DEBUG_DOUBLE("coeff", n->coeff);
