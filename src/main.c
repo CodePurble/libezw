@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <gsl/gsl_wavelet2d.h>
 #include "utils.h"
 #include "wavelib.h"
 #include "sbtree.h"
@@ -10,9 +11,6 @@
 #include "queue.h"
 #include "bitstream.h"
 
-// #define L
-
-#define GSLTEST
 #if defined(GSLTEST)
 int main()
 {
@@ -293,17 +291,35 @@ int main(int argc, char **argv)
     // queue_pretty_print(header_q, MINI_HDR);
     smap_root_approx = reconstruct(dim_pow, header_q);
     double *arr = smap2arr(smap_root_approx, rows, cols);
-    for(int i = 0; i < rows; i++) {
-        for(int j = 0; j < cols; j++) {
-            printf("%.2f ", arr[i*cols + j]);
+    arr = gsl_swap(arr, rows, cols);
+
+    unsigned char *arru = calloc(rows*cols, sizeof(unsigned char));
+    gsl_wavelet *gsl_obj;
+    gsl_wavelet_workspace *ws;
+
+    gsl_obj = gsl_wavelet_alloc(gsl_wavelet_haar, 2);
+    ws = gsl_wavelet_workspace_alloc(rows*cols);
+    int ret = gsl_wavelet2d_nstransform_inverse(gsl_obj, arr, rows, rows, cols, ws);
+    if(ret == GSL_SUCCESS) {
+        for (int i = 0; i < rows; ++i) {
+            for (int k = 0; k < cols; ++k) {
+                arru[i*cols + k] = (unsigned char) arr[i*cols + k];
+            }
         }
-        printf("\n");
+        const char *fname = "lichten_approx.bin";
+        FILE *f = fopen(fname, "wb");
+        size_t n = fwrite(arru, 1, rows*cols, f);
+        printf("%d\n", (int) n);
+        fclose(f);
     }
-    // smap_tree_print_levelorder(smap_root, ALL);
-    // printf("\n");
-    // smap_tree_print_levelorder(smap_root_approx, ALL);
+    else {
+        printf("error\n");
+    }
 
     // clean up
+    free(arru);
+    gsl_wavelet_free(gsl_obj);
+    gsl_wavelet_workspace_free(ws);
     sb_tree_free(root);
     wave_free(obj);
     wt2_free(wt);
