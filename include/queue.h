@@ -13,10 +13,11 @@ typedef struct Queue {
 } Queue;
 
 enum q_type {
+    INT,
+    DOUBLE,
     SMAP_TREE_NODE,
     MINI_HDR,
-    INT,
-    DOUBLE
+    SYMB_PAIR
 };
 
 // OPTIMIZE: Maybe pass by reference? Soo many copies!!

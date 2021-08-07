@@ -5,6 +5,7 @@
 #include "smap.h"
 #include "bitstream.h"
 #include "utils.h"
+#include "ezw.h"
 
 Queue *enqueue(Queue *q, void *data)
 {
@@ -53,10 +54,12 @@ Node *dequeue(Queue *q)
 
 void free_queue(Queue *q)
 {
-    while(q->head) {
-        free_node(dequeue(q));
+    if(q) {
+        while(q->head) {
+            free_node(dequeue(q));
+        }
+        free(q);
     }
-    free(q);
 }
 
 void queue_pretty_print(Queue *q, enum q_type t)
@@ -64,6 +67,15 @@ void queue_pretty_print(Queue *q, enum q_type t)
     if(q) {
         Node *curr = q->head;
         switch(t) {
+            case SYMB_PAIR: {
+                Symbol_ind_pair *curr_pair = NULL;
+                while(curr) {
+                    curr_pair = (Symbol_ind_pair *) curr->data;
+                    printf("(%u %u) ", curr_pair->symbol, curr_pair->morton_index);
+                    curr = curr->next;
+                }
+                break;
+            }
             case SMAP_TREE_NODE: {
                 Smap_tree_node *curr_smap_node = NULL;
                 while(curr) {
@@ -105,7 +117,7 @@ void queue_pretty_print(Queue *q, enum q_type t)
                 break;
             }
         }
-            printf("\n");
+        printf("\n");
     }
     else {
         printf("Queue is empty\n");
