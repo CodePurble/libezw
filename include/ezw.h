@@ -2,6 +2,11 @@
 #define EZW_H
 #include "smap.h"
 
+typedef struct Symbol_ind_pair {
+    unsigned char symbol;
+    unsigned short morton_index;
+} Symbol_ind_pair;
+
 // OPTIMIZE: Maybe pass by reference? Soo many copies!!
 // OPTIMIZE: Maybe pass by const reference when not mutating?
 

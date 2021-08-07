@@ -106,6 +106,7 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
                 case SP:
                 case SN:
                 case IZ:
+                    curr_smap_node->symbol = curr_smap_node->type;
                     dominant_list = enqueue(dominant_list, curr_smap_node);
                     break;
                 case ZR:
@@ -113,6 +114,7 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
                         if((curr_smap_node->parent
                                     && curr_smap_node->parent->type != ZR)
                                 || curr_smap_node->isroot) {
+                                curr_smap_node->symbol = curr_smap_node->type;
                                 dominant_list = enqueue(dominant_list, curr_smap_node);
                         }
                     }
@@ -126,33 +128,36 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
 
 Queue *subordinate_pass(Queue *dominant_list, int threshold)
 {
-    Queue *bitstream_elements = NULL;
+    Queue *bitstream_pairs = NULL;
     if(dominant_list) {
         Node *curr_queue_node = dominant_list->head;
         Smap_tree_node *curr_smap_node = NULL;
         while(curr_queue_node) {
-            unsigned char *symbol = (unsigned char *) malloc(sizeof(unsigned char));
+            // need to define new variables for each iteration
+            Symbol_ind_pair *pair = (Symbol_ind_pair *) malloc(sizeof(Symbol_ind_pair));
             curr_smap_node = (Smap_tree_node *) curr_queue_node->data;
             if(curr_smap_node->type == SP || curr_smap_node->type == SN) {
                 curr_smap_node->not_available = 1;
                 // add the third bit to the symbol
-                if((fabs(curr_smap_node->coeff) >= 1.5*threshold) &&
-                        (fabs(curr_smap_node->coeff) < 2*threshold)) {
-                    *symbol = curr_smap_node->type << 1 | 0x1;
+                if((fabs(curr_smap_node->coeff) >= 1.5*threshold)) {//&&
+                        // (fabs(curr_smap_node->coeff) < 2*threshold)) {
+                    pair->symbol = curr_smap_node->type << 1 | 0x1;
                 }
                 else {
-                    *symbol = curr_smap_node->type << 1;
+                    pair->symbol = curr_smap_node->type << 1;
                 }
                 curr_smap_node->coeff = 0.0;
             }
             else {
-                *symbol = curr_smap_node->type << 1;
+                pair->symbol = curr_smap_node->type << 1;
             }
-            bitstream_elements = enqueue(bitstream_elements, symbol);
+            pair->morton_index = curr_smap_node->morton_index;
+            curr_smap_node->symbol = pair->symbol;
+            bitstream_pairs = enqueue(bitstream_pairs, pair);
             curr_queue_node = curr_queue_node->next;
         }
     }
-    return bitstream_elements;
+    return bitstream_pairs;
 }
 
 void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned char iter)
@@ -237,7 +242,7 @@ Smap_tree_node* reconstruct(unsigned char dim_pow, Queue *header_q)
                         case SP:
                             {
                                 if(lsb) {
-                                    curr_smap->coeff = 1.5*curr_threshold;
+                                    curr_smap->coeff = (1.5*curr_threshold) + (curr_threshold/4.0);
                                 }
                                 else {
                                     curr_smap->coeff = curr_threshold;
@@ -248,7 +253,7 @@ Smap_tree_node* reconstruct(unsigned char dim_pow, Queue *header_q)
                         case SN:
                             {
                                 if(lsb) {
-                                    curr_smap->coeff = -1.5*curr_threshold;
+                                    curr_smap->coeff = (-1.5*curr_threshold) + (curr_threshold/4.0);
                                 }
                                 else {
                                     curr_smap->coeff = -curr_threshold;

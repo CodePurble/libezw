@@ -283,11 +283,14 @@ int main(int argc, char **argv)
     root = sb_treeify(J, inp, rows, cols);
     smap_root = smap_treeify(root, J);
     smap_root_copy = smap_treeify(root, J);
+    smap_set_morton_indices(smap_root_copy);
     ezw(outputFile, smap_root_copy, rows, cols, iter);
 
     Queue *header_q = NULL;
     unsigned char dim_pow;
     header_q = read_bitstream_file(outputFile, header_q, &dim_pow);
+    queue_pretty_print(header_q, MINI_HDR);
+    exit(0);
     // queue_pretty_print(header_q, MINI_HDR);
     smap_root_approx = reconstruct(dim_pow, header_q);
     double *arr = smap2arr(smap_root_approx, rows, cols);

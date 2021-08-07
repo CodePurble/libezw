@@ -16,6 +16,8 @@ Smap_tree_node *smap_tree_init_node(double coeff)
     new_node->children[3] = NULL;
     new_node->isroot = 0;
     new_node->not_available = 0;
+    new_node->symbol = 0;
+    new_node->morton_index = 0;
     return new_node;
 }
 
@@ -44,6 +46,7 @@ Smap_tree_node* smap_tree_reset(Smap_tree_node *root)
 {
     if(root) {
         root->type = U;
+        root->symbol = 0;
     }
     if(root->children[0]) {
         smap_tree_reset(root->children[0]);
@@ -139,6 +142,44 @@ Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels)
     }
     free(q);
     return smap_root;
+}
+
+void smap_set_morton_indices(Smap_tree_node *root)
+{
+    int i = 0;
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        curr_smap->morton_index = i;
+        i++;
+    }
+}
+
+unsigned char *smap2levelorder_symbols(Smap_tree_node *root, int rows, int cols)
+{
+    unsigned char *arr = (unsigned char*) calloc(rows*cols, sizeof(unsigned char));
+    int i = 0;
+    Queue *q = NULL;
+    q = enqueue(q, root);
+    while(q->head) {
+        Node *qnode = dequeue(q);
+        Smap_tree_node *curr_smap = (Smap_tree_node *) qnode->data;
+        for(int i = 0; i < 4; i++) {
+            if(curr_smap->children[i]) {
+                q = enqueue(q, curr_smap->children[i]);
+            }
+        }
+        arr[i] = curr_smap->symbol;
+        i++;
+    }
+    return arr;
 }
 
 void smap_tree_print_levelorder(Smap_tree_node *root, enum print_conf p) {

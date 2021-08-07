@@ -2,32 +2,41 @@
 #include <math.h>
 #include "utils.h"
 #include "bitstream.h"
+#include "ezw.h"
 
-mini_header *create_mini_header(unsigned int threshold, Queue *symbols)
+mini_header *create_mini_header(unsigned int threshold, Queue *symbol_pairs)
 {
     mini_header *m_hdr = malloc(sizeof(mini_header));
-    m_hdr->num_bytes = (unsigned int) (symbols->len / 2) + (symbols->len % 2);
+    m_hdr->num_bytes = (unsigned int) (symbol_pairs->len / 2) + (symbol_pairs->len % 2);
+    // NOTE: the number of indices is twice the number of bytes
+
     unsigned char curr_byte = 0xff;
     unsigned char *bytes = (unsigned char *) calloc(m_hdr->num_bytes, sizeof(unsigned char));
+    unsigned short *indices = (unsigned short *) calloc(m_hdr->num_bytes*2, sizeof(unsigned short));
 
-    // NOTE: Do we really need this??
-    Node *node_pair[2] = {NULL};
+    Node *curr_node = NULL;
+    Symbol_ind_pair *curr_pair = NULL;
 
     m_hdr->threshold_pow = (unsigned short) log2(threshold);
-    unsigned int ind = 0;
-    while(symbols->head) {
+    unsigned int symb_ind = 0;
+    unsigned int index_ind = 0;
+    while(symbol_pairs->head) {
         curr_byte = 0xff;
         // Pack pairs of symbols into bytes
         for(int i = 0; i < 2; i++) {
-            node_pair[i] = dequeue(symbols);
-            if(node_pair[i]) {
-                curr_byte = (curr_byte << 3) | *(unsigned char *) node_pair[i]->data;
+            curr_node = dequeue(symbol_pairs);
+            curr_pair = (Symbol_ind_pair *) curr_node->data;
+            if(curr_pair) {
+                curr_byte = (curr_byte << 3) | curr_pair->symbol;
+                indices[index_ind] = curr_pair->morton_index;
+                index_ind++;
             }
         }
-        bytes[ind] = curr_byte;
-        ind++;
+        bytes[symb_ind] = curr_byte;
+        symb_ind++;
     }
     m_hdr->bytes = bytes;
+    m_hdr->indices = indices;
     // DEBUG_INT("t", m_hdr->threshold_pow);
     // DEBUG_INT("n", m_hdr->num_bytes);
     // DEBUG_ARR_BYTE(m_hdr->bytes, m_hdr->num_bytes);
@@ -64,6 +73,10 @@ void write_bitstream_file(const char* filename, enum file_op_mode mode,
         fprintf(stderr, "Error while writing file: %s", filename);
         exit(1);
     }
+    if(fwrite(m_hdr->indices, sizeof(m_hdr->indices[0]), m_hdr->num_bytes*2, fptr) != m_hdr->num_bytes*2) {
+        fprintf(stderr, "Error while writing file: %s", filename);
+        exit(1);
+    }
     fclose(fptr);
 }
 
@@ -80,6 +93,8 @@ Queue* read_bitstream_file(const char* filename, Queue *header_queue, unsigned c
         fread(&curr_hdr->num_bytes, sizeof(unsigned int), 1, fptr);
         curr_hdr->bytes = calloc(curr_hdr->num_bytes, sizeof(unsigned int));
         fread(curr_hdr->bytes, sizeof(unsigned char), curr_hdr->num_bytes, fptr);
+        curr_hdr->indices = calloc(curr_hdr->num_bytes*2, sizeof(unsigned short));
+        fread(curr_hdr->indices, sizeof(unsigned short), curr_hdr->num_bytes*2, fptr);
         header_queue = enqueue(header_queue, curr_hdr);
     }
     return header_queue;

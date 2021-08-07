@@ -24,6 +24,8 @@ typedef struct Smap_tree_node {
     char isroot : 1;
     enum smap_symbol type;
     unsigned char not_available;
+    unsigned char symbol;
+    unsigned int morton_index;
 } Smap_tree_node;
 
 // OPTIMIZE: Maybe pass by reference? Soo many copies!!
@@ -42,4 +44,6 @@ Queue *smap_tree_insert_quad(Queue *q, double *cvals);
 Smap_tree_node *smap_treeify(SBtree_node *sb_root, int levels);
 Smap_tree_node* smap_tree_reset(Smap_tree_node *root);
 double *smap2levelorder(Smap_tree_node *root, int rows, int cols);
+unsigned char *smap2levelorder_symbols(Smap_tree_node *root, int rows, int cols);
+void smap_set_morton_indices(Smap_tree_node *root);
 #endif // SMAP_H

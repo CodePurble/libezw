@@ -40,6 +40,14 @@ static inline void DEBUG_ARR_BYTE(unsigned char *x, int len) {
     printf("\n");
 }
 
+static inline void DEBUG_ARR_USHORT(unsigned short *x, int len) {
+    BOLD_CYAN_FG("[debug_arr_ushort] ");
+    for(int i = 0; i < len; i++) {
+        printf("%x ", x[i]);
+    }
+    printf("\n");
+}
+
 static inline void DEBUG_ARR_F_1(double *x, int len) {
     BOLD_CYAN_FG("[debug_arr_f_1] ");
     for(int i = 0; i < len; i++) {
