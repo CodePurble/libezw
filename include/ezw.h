@@ -10,7 +10,7 @@ enum smap_symbol encode_coeff(float coeff, int threshold);
 Queue *dominant_pass(Smap_tree_node *smap_root, int threshold);
 Queue *subordinate_pass(Queue *dominant_list, int threshold);
 // void ezw(Smap_tree_node *smap_root, unsigned char iter);
-void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned char iter);
+void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned int iter);
 Smap_tree_node* reconstruct(unsigned char dim_pow, Queue *header_q);
 
 // NOTE: when decoding, just do morton scan, but replace coeff with decoded

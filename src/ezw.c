@@ -155,7 +155,7 @@ Queue *subordinate_pass(Queue *dominant_list, int threshold)
     return bitstream_elements;
 }
 
-void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned char iter)
+void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned int iter)
 {
     // bitplane coding is adopted here
     // https://en.wikipedia.org/wiki/Bit_plane
@@ -165,7 +165,7 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
     Queue *dominant_list = NULL;
     Queue *symbols = NULL;
     mini_header *m_hdr = NULL;
-    int i = 0;
+    unsigned int i = 0;
     while(i < iter) {
         if(threshold > 0) {
             BOLD_CYAN_FG("Iteration\n");

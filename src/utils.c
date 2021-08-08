@@ -4,8 +4,13 @@
 
 void read_binary_file(FILE *infile, unsigned char *dest_arr, int rows, int cols)
 {
-    fread(dest_arr, 1, rows*cols, infile);
-    printf("Read binary file...\n");
+    if(fread(dest_arr, 1, rows*cols, infile) != rows*cols) {
+        fprintf(stderr, "Error while reading binary file\n");
+        exit(1);
+    }
+    else {
+        printf("Read binary file...\n");
+    }
 }
 
 void write_binary_file(FILE *outfile, unsigned char *src_arr, int rows, int cols)
