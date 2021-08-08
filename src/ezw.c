@@ -136,8 +136,8 @@ Queue *subordinate_pass(Queue *dominant_list, int threshold)
             if(curr_smap_node->type == SP || curr_smap_node->type == SN) {
                 curr_smap_node->not_available = 1;
                 // add the third bit to the symbol
-                if((fabs(curr_smap_node->coeff) >= 1.5*threshold) &&
-                        (fabs(curr_smap_node->coeff) < 2*threshold)) {
+                // If 1, the coeff is > 1.5*t else, coeff is <= 1.5*t
+                if(fabs(curr_smap_node->coeff) > 1.5*threshold) {
                     *symbol = curr_smap_node->type << 1 | 0x1;
                 }
                 else {
@@ -168,7 +168,6 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
     unsigned int i = 0;
     while(i < iter) {
         if(threshold > 0) {
-            BOLD_CYAN_FG("Iteration\n");
             dominant_list = dominant_pass(smap_root, threshold);
             // queue_pretty_print(dominant_list, SMAP_TREE_NODE);
 
@@ -183,7 +182,6 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
                 write_bitstream_file(filename, A, m_hdr, rows);
             }
             threshold /= 2;
-            BOLD_CYAN_FG("...\n\n");
             free_queue(symbols);
             free(m_hdr);
         }
@@ -237,10 +235,10 @@ Smap_tree_node* reconstruct(unsigned char dim_pow, Queue *header_q)
                         case SP:
                             {
                                 if(lsb) {
-                                    curr_smap->coeff = 1.5*curr_threshold;
+                                    curr_smap->coeff = (1.5*curr_threshold) + (curr_threshold/4.0);
                                 }
                                 else {
-                                    curr_smap->coeff = curr_threshold;
+                                    curr_smap->coeff = (1.5*curr_threshold) - (curr_threshold/4.0);
                                 }
                                 curr_smap->not_available = 1;
                                 break;
@@ -248,10 +246,10 @@ Smap_tree_node* reconstruct(unsigned char dim_pow, Queue *header_q)
                         case SN:
                             {
                                 if(lsb) {
-                                    curr_smap->coeff = -1.5*curr_threshold;
+                                    curr_smap->coeff = -((1.5*curr_threshold) + (curr_threshold/4.0));
                                 }
                                 else {
-                                    curr_smap->coeff = -curr_threshold;
+                                    curr_smap->coeff = -((1.5*curr_threshold) - (curr_threshold/4.0));
                                 }
                                 curr_smap->not_available = 1;
                                 break;
