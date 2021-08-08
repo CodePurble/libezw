@@ -12,7 +12,7 @@
 
 // #define L
 
-#define GSLTEST
+// #define GSLTEST
 #if defined(GSLTEST)
 int main()
 {
@@ -281,24 +281,24 @@ int main(int argc, char **argv)
     SBtree_node *root = (SBtree_node *) malloc(sizeof(SBtree_node));
     Smap_tree_node *smap_root = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
     Smap_tree_node *smap_root_copy = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
-    Smap_tree_node *smap_root_approx = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
+    // Smap_tree_node *smap_root_approx = (Smap_tree_node *) malloc(sizeof(Smap_tree_node));
     root = sb_treeify(J, inp, rows, cols);
     smap_root = smap_treeify(root, J);
     smap_root_copy = smap_treeify(root, J);
     ezw(outputFile, smap_root_copy, rows, cols, iter);
 
-    Queue *header_q = NULL;
-    unsigned char dim_pow;
-    header_q = read_bitstream_file(outputFile, header_q, &dim_pow);
-    // queue_pretty_print(header_q, MINI_HDR);
-    smap_root_approx = reconstruct(dim_pow, header_q);
-    double *arr = smap2arr(smap_root_approx, rows, cols);
-    for(int i = 0; i < rows; i++) {
-        for(int j = 0; j < cols; j++) {
-            printf("%.2f ", arr[i*cols + j]);
-        }
-        printf("\n");
-    }
+    // Queue *header_q = NULL;
+    // unsigned char dim_pow;
+    // header_q = read_bitstream_file(outputFile, header_q, &dim_pow);
+    // // queue_pretty_print(header_q, MINI_HDR);
+    // smap_root_approx = reconstruct(dim_pow, header_q);
+    // double *arr = smap2arr(smap_root_approx, rows, cols);
+    // for(int i = 0; i < rows; i++) {
+    //     for(int j = 0; j < cols; j++) {
+    //         printf("%.2f ", arr[i*cols + j]);
+    //     }
+    //     printf("\n");
+    // }
     // smap_tree_print_levelorder(smap_root, ALL);
     // printf("\n");
     // smap_tree_print_levelorder(smap_root_approx, ALL);
