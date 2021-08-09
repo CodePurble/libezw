@@ -18,12 +18,16 @@
 \graphicspath{{../img}} % Path to images
 \usepackage{xcolor} % Colours
 \usepackage{caption} % caption floats
+\usepackage{subcaption}
 \usepackage{tabularx}
 \usepackage{placeins}
 \usepackage{float}
 \usepackage[newfloat,outputdir=build]{minted} % source code blocks
-\usemintedstyle[c]{bw}
 \definecolor{codebg}{rgb}{0.9, 0.9, 0.9}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{mathtools}
+\usepackage{amsfonts}
 
 \usepackage{hyperref} % link crossrefs and toc
 \hypersetup{
@@ -59,7 +63,7 @@
                 \includegraphics[scale=0.37]{ecelogo.png}
             \end{tabular}
         } \\
-        \vspace{5cm}
+        \vspace{3.5cm}
         {\huge Department of Electronics and Communication Engineering} \\
         \vspace{2cm}
         \large{Mini Project Report} \\
@@ -80,7 +84,9 @@
         \vspace{1cm}
         \textbf{\underline{\large Under the guidance of:}} \\
         \vspace{0.5cm}
-        \textbf{\large Dr. Raghu J} \\
+        \textbf{\large Dr. Narasimha Kaulgud} \\
+        Professor and Head, Dept. of ECE \\
+        \textbf{\large Dr. Raghu J. Mandya} \\
         Assistant Professor, Dept. of ECE \\
     \end{center}
 \end{titlepage}
@@ -88,6 +94,8 @@
 \restoregeometry
 
 \pagenumbering{roman}
+\subfile{ack.tex}
+\newpage
 \tableofcontents
 \newpage
 
