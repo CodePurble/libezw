@@ -92,7 +92,7 @@ whose nodes contain the coefficients and all associated information. If we move
 deeper into the tree, the level of decomposition \textbf{decreases}. Another
 key point about the tree is that the first node (the \textit{LL} coefficient of
 the highest level of decomposition) has only 3 children, while all others have
-four. % add a reference to Skanda's hierarchy image from before to show the relationship between each level of nodes
+four. (see figure \ref{fig:subband2})
 
 \begin{figure}[H]
     \centering
@@ -126,9 +126,9 @@ typedef struct Smap_tree_node {
 \subsection{The algorithms}
 The algorithm used to assign the significance map values to the respective
 coefficients are split into two steps or ``passes'', the \textit{dominant pass}
-and the \textit{subordinate pass} that happen one after the other \cite{shap1993}. Each set of
-passes depends on a threshold value, with which coefficients are compared with
-to decide what value they are mapped to.
+and the \textit{subordinate pass} that happen one after the other
+\cite{shap1993}. Each set of passes depends on a threshold value, with which
+coefficients are compared with to decide what value they are mapped to.
 \par
 \textbf{PTO}
 
@@ -173,9 +173,9 @@ appropriate symbol. There are 4 possible symbols \cite{valezw1999}:\\
     \label{tab:qsymbs}
 \end{table}
 
-This assignment is handled by the \mintinline{c}{check_descendants()} routine in
-algorithm \ref{alg:dompass}. Once that is done, the significant nodes are put
-in a list and returned to be used in the subordinate pass.
+This assignment is handled by the \mintinline{c}{check_descendants()} routine
+in algorithm \ref{alg:dompass}. Once that is done, the significant nodes are
+put in a list and returned to be used in the subordinate pass.
 
 \begin{algorithm}[H]
     \caption{Subordinate pass}
