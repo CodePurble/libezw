@@ -1,22 +1,53 @@
 \documentclass[./A14_Report.tex]{subfiles}
 
 \begin{document}
-
 \chapter{Conclusion}
+\section{Results}
+The following results were obtained on applying the compression algorithm on
+images of various sizes. Note that $Max = \log_2{T_0}$.
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Image} & \textbf{Original size (bytes)} & \textbf{Size after
+    compression (bytes)} & \textbf{Iterations}\\
+    \hline
+    eggs8 & 64 & 46 & 4\\
+    eggs8 & 64 & 70 & 5\\
+    eggs8 & 64 & 216 & Max\\
+    \hline
+    eggs16 & 256 & 153 & 6\\
+    eggs16 & 256 & 257 & 7\\
+    eggs16 & 256 & 621 & Max\\
+    \hline
+    lichten & 262144 & 198751 & 14\\
+    lichten & 262144 & 269263 & 15\\
+    lichten & 262144 & 352671 & Max\\
+    \hline
+\end{tabular}
+\caption{Data collected}
+\label{tab:data}
+\end{table}
+
+A key observation that can be made is that the algorithm produces files with
+lower sizes than the originals only up to a certain maximum, after which the
+algorithm generates files \textit{larger} than the original files. This is due
+to redundancy that results from a very low threshold. Barring this, the
+algorithm shows promising results for compression with minimum loss of data.
+
 \section{Remarks}
 Undertaking this project has enabled us to explore the extensive research
-conducted in the field \textit{image compression}. We established an
-understanding of the famous \textit{Discrete Wavelet Transform} and it's
+conducted in the field of \textit{image compression}. We established an
+understanding of the \textit{Discrete Wavelet Transform} and it's
 immediate application in the Embedded Zerotree Wavelet Algorithm. We also
 discovered the various aspects such as encoding schemes and quantization
 methods that govern the EZW algorithm output.
 
-\section{Proposed outcomes}
-A fully operative EZW coder, with data to support claims made earlier.
-
 \section{Future work}
 \begin{itemize}
-    \item A multi-core implementation of the algorithm
-    \item An FPGA-based hardware accelerator for the algorithm
+        \item Write the de-compressor
+        \item Include entropy encoder
+        \item A multi-core implementation of the algorithm
+        \item An FPGA-based hardware accelerator for the algorithm
 \end{itemize}
 \end{document}
