@@ -24,7 +24,6 @@ typedef struct Smap_tree_node {
     char isroot : 1;
     enum smap_symbol type;
     unsigned char not_available;
-    unsigned char symbol;
     unsigned int morton_index;
 } Smap_tree_node;
 

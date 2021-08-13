@@ -9,12 +9,13 @@ mini_header *create_mini_header(unsigned int threshold, Queue *symbol_pairs)
     mini_header *m_hdr = NULL;
     if(symbol_pairs) {
         m_hdr = malloc(sizeof(mini_header));
-        m_hdr->num_bytes = (unsigned int) (symbol_pairs->len / 2) + (symbol_pairs->len % 2);
-        // NOTE: the number of indices is twice the number of bytes
+        m_hdr->num_bytes = (unsigned int) (symbol_pairs->len / 4) + (symbol_pairs->len % 4);
+        DEBUG_INT("num_bytes", m_hdr->num_bytes);
+        // NOTE: the number of indices is 4 times the number of bytes
 
-        unsigned char curr_byte = 0xff;
+        unsigned char curr_byte = 0x00;
         unsigned char *bytes = (unsigned char *) calloc(m_hdr->num_bytes, sizeof(unsigned char));
-        unsigned short *indices = (unsigned short *) calloc(m_hdr->num_bytes*2, sizeof(unsigned short));
+        unsigned short *indices = (unsigned short *) calloc(m_hdr->num_bytes*4, sizeof(unsigned short));
 
         Node *curr_node = NULL;
         Symbol_ind_pair *curr_pair = NULL;
@@ -23,29 +24,26 @@ mini_header *create_mini_header(unsigned int threshold, Queue *symbol_pairs)
         unsigned int symb_ind = 0;
         unsigned int index_ind = 0;
         while(symbol_pairs->head) {
-            curr_byte = 0xff;
-            // Pack pairs of symbols into bytes
+            curr_byte = 0x00;
+            // Pack approx bits into bytes
             // queue_pretty_print(symbol_pairs, SYMB_PAIR);
-            for(int i = 0; i < 2; i++) {
-                curr_node = dequeue(symbol_pairs);
-                if(curr_node) {
+            curr_node = dequeue(symbol_pairs);
+            if(curr_node) {
+                for(int i = 0; i < 4; i++) {
                     curr_pair = (Symbol_ind_pair *) curr_node->data;
+                    if(curr_pair) {
+                        curr_byte = (curr_byte << 2) | curr_pair->symbol;
+                        indices[index_ind] = curr_pair->morton_index;
+                        index_ind++;
+                    }
                 }
-                if(curr_pair) {
-                    curr_byte = (curr_byte << 3) | curr_pair->symbol;
-                    indices[index_ind] = curr_pair->morton_index;
-                    index_ind++;
-                }
+                bytes[symb_ind] = curr_byte;
+                symb_ind++;
             }
-            bytes[symb_ind] = curr_byte;
-            symb_ind++;
         }
         m_hdr->bytes = bytes;
         m_hdr->indices = indices;
     }
-    // DEBUG_INT("t", m_hdr->threshold_pow);
-    // DEBUG_INT("n", m_hdr->num_bytes);
-    // DEBUG_ARR_BYTE(m_hdr->bytes, m_hdr->num_bytes);
     return m_hdr;
 }
 
@@ -55,7 +53,6 @@ void write_bitstream_file(const char* filename, enum file_op_mode mode,
     if(m_hdr) {
         FILE *fptr = NULL;
         unsigned char dim_pow = log2(dim);
-        // DEBUG_INT("num_bytes", m_hdr->num_bytes);
         if(mode == A) {
             fptr = fopen(filename, "ab");
         }
@@ -74,7 +71,6 @@ void write_bitstream_file(const char* filename, enum file_op_mode mode,
             fprintf(stderr, "Error while writing file: %s", filename);
             exit(1);
         }
-        // DEBUG_ARR_BYTE(m_hdr->bytes, m_hdr->num_bytes);
         if(fwrite(m_hdr->bytes, sizeof(m_hdr->bytes[0]), m_hdr->num_bytes, fptr) != m_hdr->num_bytes) {
             fprintf(stderr, "Error while writing file: %s", filename);
             exit(1);

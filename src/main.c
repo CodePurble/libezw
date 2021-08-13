@@ -255,13 +255,12 @@ int main(int argc, char **argv)
 
     wave_object obj;
     wt2_object wt;
-    double *inp, *oup, *inv_out;
+    double *inp, *inv_out;
     int N = rows*cols;
 
     char *name = "haar";
     obj = wave_init(name);// Initialize the wavelet
     inp = (double *) calloc(N, sizeof(double));
-    oup = (double *) calloc(N, sizeof(double));
     inv_out = (double *) calloc(N, sizeof(double));
 
     // number of decompositions = max possible for the given dimensions
@@ -272,7 +271,6 @@ int main(int argc, char **argv)
     for (int i = 0; i < rows; ++i) {
         for (int k = 0; k < cols; ++k) {
             inp[i*cols + k] = (double) pix_gc[i*cols + k];
-            oup[i*cols + k] = 0.0;
         }
     }
 
@@ -289,7 +287,7 @@ int main(int argc, char **argv)
     Queue *header_q = NULL;
     unsigned char dim_pow;
     header_q = read_bitstream_file(outputFile, header_q, &dim_pow);
-    // queue_pretty_print(header_q, MINI_HDR);
+    queue_pretty_print(header_q, MINI_HDR);
     double *approx = reconstruct(dim_pow, header_q);
     approx = gsl_swap(approx, rows, cols);
 
@@ -304,7 +302,6 @@ int main(int argc, char **argv)
     int ret = gsl_wavelet2d_nstransform_inverse(gsl_obj, approx, rows, rows, cols, ws);
     // approx = gsl_swap(approx, rows, cols);
     printf("\n");
-    DEBUG_ARR_F_2_ROWM(approx, rows, cols);
     if(ret == GSL_SUCCESS) {
         for (int i = 0; i < rows; ++i) {
             for (int k = 0; k < cols; ++k) {
@@ -312,7 +309,7 @@ int main(int argc, char **argv)
             }
         }
         printf("\n");
-        DEBUG_ARR_UCHAR_2_RMAJ(gcu, rows, cols);
+        DEBUG_ARR_UCHAR_2_ROWM(gcu, rows, cols);
         // const char *fname = "lichten_approx.bin";
         const char *fname = "eggs_approx8.bin";
         // const char *fname = "eggs_approx16.bin";
@@ -333,7 +330,6 @@ int main(int argc, char **argv)
     wave_free(obj);
     wt2_free(wt);
     free(inp);
-    free(oup);
     free(pix_gc);
     free(inv_out);
     return 0;

@@ -90,7 +90,7 @@ void queue_pretty_print(Queue *q, enum q_type t)
                 mini_header *curr_hdr = NULL;
                 while(curr) {
                     curr_hdr = (mini_header *) curr->data;
-                    printf("(%d %d)\n", curr_hdr->threshold_pow, curr_hdr->num_bytes);
+                    printf("(thresh_pow:%d num_bytes:%d)\n", curr_hdr->threshold_pow, curr_hdr->num_bytes);
                     DEBUG_ARR_BYTE(curr_hdr->bytes, curr_hdr->num_bytes);
                     DEBUG_ARR_USHORT(curr_hdr->indices, curr_hdr->num_bytes*2);
                     printf("\n");

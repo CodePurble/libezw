@@ -16,7 +16,6 @@ Smap_tree_node *smap_tree_init_node(double coeff)
     new_node->children[3] = NULL;
     new_node->isroot = 0;
     new_node->not_available = 0;
-    new_node->symbol = 0;
     new_node->morton_index = 0;
     return new_node;
 }
@@ -46,7 +45,6 @@ Smap_tree_node* smap_tree_reset(Smap_tree_node *root)
 {
     if(root) {
         root->type = U;
-        root->symbol = 0;
     }
     if(root->children[0]) {
         smap_tree_reset(root->children[0]);
@@ -176,7 +174,7 @@ unsigned char *smap2levelorder_symbols(Smap_tree_node *root, int rows, int cols)
                 q = enqueue(q, curr_smap->children[i]);
             }
         }
-        arr[i] = curr_smap->symbol;
+        arr[i] = (unsigned char) curr_smap->type;
         i++;
     }
     return arr;

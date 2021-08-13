@@ -58,7 +58,7 @@ static inline void DEBUG_ARR_F_1(double *x, int len) {
 
 static inline void DEBUG_ARR_F_2_ROWM(double *x, int r, int c) {
     for(int i = 0; i < r; i++) {
-        BOLD_CYAN_FG("[debug_arr_f_2] ");
+        BOLD_CYAN_FG("[debug_arr_f_2_rm] ");
         for(int j = 0; j < c; j++) {
             printf("%.2f\t", x[i*c + j]);
         }
@@ -76,9 +76,9 @@ static inline void DEBUG_ARR_F_2(double **x, int r, int c) {
     }
 }
 
-static inline void DEBUG_ARR_UCHAR_2_RMAJ(unsigned char *x, int r, int c) {
+static inline void DEBUG_ARR_UCHAR_2_ROWM(unsigned char *x, int r, int c) {
     for(int i = 0; i < r; i++) {
-        BOLD_CYAN_FG("[debug_arr_uchar_2] ");
+        BOLD_CYAN_FG("[debug_arr_uchar_2_rm] ");
         for(int j = 0; j < c; j++) {
             printf("%x\t", x[i*c + j]);
         }

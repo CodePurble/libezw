@@ -87,7 +87,7 @@ void check_descendants(Smap_tree_node *parent, int threshold)
 Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
 {
     Queue *q = NULL;
-    Queue *dominant_list = NULL;
+    Queue *subordinate_list = NULL;
     Node *curr_queue_node = NULL;
     Smap_tree_node *curr_smap_node = NULL;
 
@@ -99,72 +99,74 @@ Queue *dominant_pass(Smap_tree_node *smap_root, int threshold)
         if(curr_queue_node) {
             curr_smap_node = (Smap_tree_node *) curr_queue_node->data;
             for(int i = 0; i < 4; i++) {
-                if(curr_smap_node->children[i]) {
+                if(curr_smap_node->children[i] && !curr_smap_node->children[i]->not_available) {
                     q = enqueue(q, curr_smap_node->children[i]);
                 }
             }
-            if(!curr_smap_node->not_available) {
-                check_descendants(curr_smap_node, threshold);
-                switch(curr_smap_node->type) {
-                    case SP:
-                    case SN:
-                        curr_smap_node->symbol = curr_smap_node->type;
-                        dominant_list = enqueue(dominant_list, curr_smap_node);
-                        break;
-                    case IZ:
-                    case ZR:
-                        // {
-                        //     if((curr_smap_node->parent
-                        //                 && curr_smap_node->parent->type != ZR)
-                        //             || curr_smap_node->isroot) {
-                        //             curr_smap_node->symbol = curr_smap_node->type;
-                        //             dominant_list = enqueue(dominant_list, curr_smap_node);
-                        //     }
-                        // }
-                    case U:
-                        break;
-                }
+
+            check_descendants(curr_smap_node, threshold);
+            switch(curr_smap_node->type) {
+                case SP:
+                case SN:
+                    subordinate_list = enqueue(subordinate_list, curr_smap_node);
+                    curr_smap_node->not_available = 1;
+                    // curr_smap_node->coeff = 0.0;
+                    break;
+                case IZ:
+                case ZR:
+                    // {
+                    //     if((curr_smap_node->parent
+                    //                 && curr_smap_node->parent->type != ZR)
+                    //             || curr_smap_node->isroot) {
+                    //             curr_smap_node->symbol = curr_smap_node->type;
+                    //             dominant_list = enqueue(dominant_list, curr_smap_node);
+                    //     }
+                    // }
+                case U:
+                    break;
             }
         }
     }
-    return dominant_list;
+    return subordinate_list;
 }
 
-Queue *subordinate_pass(Queue *dominant_list, int threshold)
+Queue *subordinate_pass(Queue *subordinate_list, int threshold)
 {
+    queue_pretty_print(subordinate_list, SMAP_TREE_NODE);
+    printf("\n");
     Queue *bitstream_pairs = NULL;
-    if(dominant_list) {
-        Node *curr_queue_node = dominant_list->head;
+    if(subordinate_list) {
+        Node *curr_queue_node = subordinate_list->head;
         Smap_tree_node *curr_smap_node = NULL;
         while(curr_queue_node) {
             // need to define new variables for each iteration
             Symbol_ind_pair *pair = (Symbol_ind_pair *) malloc(sizeof(Symbol_ind_pair));
             curr_smap_node = (Smap_tree_node *) curr_queue_node->data;
-            if(curr_smap_node->type == SP || curr_smap_node->type == SN) {
-                // add the third bit to the symbol
-                // If 1, the coeff is > 1.5*t else, coeff is <= 1.5*t
-                if(fabs(curr_smap_node->coeff) > 1.5*threshold) {
-                    pair->symbol = curr_smap_node->type << 1 | 0x1;
-                }
-                else {
-                    pair->symbol = curr_smap_node->type << 1;
-                }
-                curr_smap_node->not_available = 1;
-                pair->morton_index = curr_smap_node->morton_index;
-                curr_smap_node->symbol = pair->symbol;
-                bitstream_pairs = enqueue(bitstream_pairs, pair);
-                curr_queue_node = curr_queue_node->next;
+            // add the third bit to the symbol
+            // If 1, the coeff is > 1.5*t else, coeff is <= 1.5*t
+            if(curr_smap_node->type == SP) {
+                pair->symbol = 0;
             }
-            // else {
-            //     pair->symbol = curr_smap_node->type << 1;
-            // }
+            else{
+                pair->symbol = 1;
+            }
+            if(fabs(curr_smap_node->coeff) > 1.5*threshold) {
+                pair->symbol = (pair->symbol << 1) | 1;
+            }
+            else {
+                pair->symbol <<= 1;
+            }
+            pair->morton_index = curr_smap_node->morton_index;
+            bitstream_pairs = enqueue(bitstream_pairs, pair);
+            curr_queue_node = curr_queue_node->next;
         }
     }
     return bitstream_pairs;
 }
 
-void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned char iter)
+void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned int iter)
 {
+    DEBUG_STR("ITER", "");
     // bitplane coding is adopted here
     // https://en.wikipedia.org/wiki/Bit_plane
     // bitplanes can be coded efficiently
@@ -201,7 +203,7 @@ void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, un
 double* reconstruct(unsigned char dim_pow, Queue *header_q)
 {
     // initialise empty trees for filling in with approximations
-    double *approximation = (double *) calloc(pow(2, 2*dim_pow), sizeof(double));
+    double *approximation = (double *) calloc(pow(dim_pow, 2)*pow(dim_pow, 2), sizeof(double));
 
     int curr_threshold = 0;
     unsigned char lsb = 0;
@@ -212,47 +214,34 @@ double* reconstruct(unsigned char dim_pow, Queue *header_q)
             unsigned char curr_byte = 0;
             unsigned char *symbols = calloc(2*curr_hdr->num_bytes, sizeof(unsigned char));
             unsigned short *indices = calloc(2*curr_hdr->num_bytes, sizeof(unsigned short));
-            for(int i = 0; i < 2*curr_hdr->num_bytes; i++) {
-                curr_byte = curr_hdr->bytes[i/2];
-
-                // NOTE: extract from MSB half first
-                // eg: 0b11111001
-                // extracts 0b111 first, then 0b001, which is the order we want
-                symbols[i] = (((curr_byte << (i%2)*3) & SYMB_MASK) >> 3);
+            // for every index
+            for(int i = 0; i < 4*curr_hdr->num_bytes; i++) {
+                unsigned int shift = (i%4)*2;
+                unsigned char mask = 0xc0;
+                curr_byte = curr_hdr->bytes[i/4];
+                symbols[i] = ((curr_byte & (mask >> shift)) >> (6 - (i%4)*2));
                 indices[i] = curr_hdr->indices[i];
+                // NOTE:
+                // 11000000 0
+                // 00110000 2
+                // 00001100 4
+                // 00000011 6
             }
 
             curr_threshold = pow(2, curr_hdr->threshold_pow);
-            for(int i = 0; i < 2*curr_hdr->num_bytes; i++) {
+            for(int i = 0; i < 4*curr_hdr->num_bytes; i++) {
                 lsb = symbols[i] & 1;
+                if(lsb) {
+                    approximation[indices[i]] = (1.5*curr_threshold) + (curr_threshold/4.0);
+                }
+                else {
+                    approximation[indices[i]] = (1.5*curr_threshold) - (curr_threshold/4.0);
+                }
+
                 symbols[i] >>= 1;
-                switch(symbols[i]) {
-                    case SP:
-                        {
-                            if(lsb) {
-                                approximation[indices[i]] = (1.5*curr_threshold) + (curr_threshold/4.0);
-                            }
-                            else {
-                                approximation[indices[i]] = (1.5*curr_threshold) - (curr_threshold/4.0);
-                            }
-                            break;
-                        }
-                    case SN:
-                        {
-                            if(lsb) {
-                                approximation[indices[i]] = -((1.5*curr_threshold) + (curr_threshold/4.0));
-                            }
-                            else {
-                                approximation[indices[i]] = -((1.5*curr_threshold) - (curr_threshold/4.0));
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            DEBUG_STR("default", "case");
-                            approximation[indices[i]] = (1.5*curr_threshold) - (curr_threshold/4.0);
-                            break;
-                        }
+
+                if(symbols[i] == 1) {
+                    approximation[indices[i]] *= -1;
                 }
             }
             // DEBUG_ARR_BYTE(symbols, 2*curr_hdr->num_bytes);
