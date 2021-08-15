@@ -311,7 +311,7 @@ int main(int argc, char **argv)
         printf("\n");
         DEBUG_ARR_UCHAR_2_ROWM(gcu, rows, cols);
         // const char *fname = "lichten_approx.bin";
-        const char *fname = "eggs_approx8.bin";
+        const char *fname = "eggs_appr_new.bin";
         // const char *fname = "eggs_approx16.bin";
         FILE *f = fopen(fname, "wb");
         size_t n = fwrite(gcu, 1, rows*cols, f);

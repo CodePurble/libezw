@@ -166,7 +166,6 @@ Queue *subordinate_pass(Queue *subordinate_list, int threshold)
 
 void ezw(const char *filename, Smap_tree_node *smap_root, int rows, int cols, unsigned int iter)
 {
-    DEBUG_STR("ITER", "");
     // bitplane coding is adopted here
     // https://en.wikipedia.org/wiki/Bit_plane
     // bitplanes can be coded efficiently
@@ -229,7 +228,7 @@ double* reconstruct(unsigned char dim_pow, Queue *header_q)
             }
 
             curr_threshold = pow(2, curr_hdr->threshold_pow);
-            for(int i = 0; i < 4*curr_hdr->num_bytes; i++) {
+            for(int i = 0; i < 2*curr_hdr->num_bytes; i++) {
                 lsb = symbols[i] & 1;
                 if(lsb) {
                     approximation[indices[i]] = (1.5*curr_threshold) + (curr_threshold/4.0);
