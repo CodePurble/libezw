@@ -1,0 +1,129 @@
+\documentclass{beamer}
+\usetheme{Antibes}
+\usecolortheme{beaver}
+\setbeameroption{show only notes}
+\usepackage{graphicx}
+
+\usepackage[backend=biber]{biblatex}
+\addbibresource{../../refs.bib}
+
+\usepackage{csquotes}
+
+\logo{\includegraphics[height=0.6cm]{../img/New_NIE_Logo.png}}
+
+\title{A Study \& Implementation of the Embedded Zerotree Wavelet Algorithm}
+\author{
+    C. Ramprakash (4NI18EC019) \\ Skanda Prasad (4NI18EC085)
+}
+\institute[NIE]{
+    Under the guidance of Dr. Raghu J. Mandya \& Dr. Narasimha Kaulgud \\
+    Department of ECE
+    \\
+    The National Institute of Engineering, Mysuru
+}
+\date{May 2021}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+
+
+\section{Background}
+\begin{frame}{Data compression}
+    Any information is associated with a quantity called \textit{entropy} \cite{shan48}, given by:
+    \[H = -\sum\nolimits P_i \cdot \log_{b} P_i\]
+
+
+    \pause
+
+    Compression schemes:
+    \begin{itemize}
+        \item Lossy
+        \item Lossless
+    \end{itemize}
+\end{frame}
+
+
+\note{bruh}
+\begin{frame}{Data compression}
+    \begin{figure}[H]
+        \includegraphics[scale=0.2]{../img/block-diag.pdf}
+        \caption{Transform coder: Generalised \cite{shap93}}
+    \end{figure}
+
+    \pause
+
+    \[Quantizer \neq Quantizer\]
+\end{frame}
+
+\begin{frame}{Data compression}
+    A few notable transforms include:
+    \begin{itemize}
+        \item Discrete Fourier Transform (DFT)
+        \item Discrete Cosine Transform (DCT)
+        \item Discrete Wavelet Transform (DWT)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Why choose the DWT over others?}
+    \begin{itemize}
+        \item The ability to truncate (stop) the encoding of bits, without
+            significant loss of information
+        \item DWT is more resilient to artefact formation (e.g. box artefacts)
+        \item Deals with multi-resolution processing with ease
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{The embedded zerotree wavelet algorithm}
+    An excerpt from the abstract of Shapiro's paper \cite{shap93}
+    \vspace{0.5cm}
+
+    \begin{displayquote}
+        The EZW algorithm is based on four key concepts:
+        \begin{enumerate}
+            \item A discrete wavelet transform or hierarchical sub-band decomposition
+            \item Prediction of the absence of significant information across scales by exploiting the self-similarity inherent in images
+            \item Entropy-coded successive-approximation quantization
+            \item Universal lossless data compression which is achieved via adaptive arithmetic coding
+        \end{enumerate}
+    \end{displayquote}
+\end{frame}
+
+\section{Problem statement}
+\begin{frame}{Problem statement}
+    To implement the \textit{Embedded Zerotree Wavelet} algorithm for image
+    compression as a C library, and study its performance under various
+    circumstances.
+\end{frame}
+
+\section{Implementation approach}
+\begin{frame}{Software implementation}
+    \begin{itemize}
+        \item External library for computing DWT \cite{wavelib}
+        \item We implement the EZW algorithm on the transformed output
+    \end{itemize}
+\end{frame}
+
+\section{Conclusion}
+\subsection{Proposed outcomes}
+\begin{frame}
+    A fully operative EZW coder, with data to support claims made earlier.
+\end{frame}
+
+\subsection{Future work}
+\begin{frame}
+    \begin{itemize}
+        \item A multi-core implementation of the algorithm
+        \item An FPGA-based hardware accelerator for the algorithm
+    \end{itemize}
+\end{frame}
+
+\section{References}
+\printbibliography
+
+\end{document}
+
